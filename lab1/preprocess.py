@@ -19,7 +19,7 @@ class BOW:
         return self.vocab[item]
 
     def voc2idx(self, voc):
-        return self.idx.get(voc,-1)
+        return self.idx.get(voc, -1)
 
     def generate_bag(self, phrase):
         bag = np.array([0] * len(self.vocab), dtype=np.float64)
@@ -34,4 +34,5 @@ class BOW:
         for phrase in self.corpus:
             self.data.append(self.generate_bag(phrase))
 
-
+def dataloader_bow(batch_size,shuffle=True):
+    pass

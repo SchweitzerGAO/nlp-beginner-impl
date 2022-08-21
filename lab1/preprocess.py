@@ -6,8 +6,9 @@ class BOW:
     def __init__(self, train_path):
         df = pd.read_csv(train_path, sep='\t')
         self.corpus = df['Phrase']
-        self.label = df['Sentiment']
+        self.cls = df['Sentiment']
         self.vocab = []  # index-vocabulary
+        self.num_cls = len(set(self.cls))
         self.idx = dict()  # vocabulary-index
         for phrase in self.corpus:
             phrase = phrase.lower()
@@ -42,17 +43,20 @@ def train_test_split(bow, test_ratio=0.2):
     return train_set, test_set
 
 
-def dataloader_bow(train_set, batch_size, shuffle=True):
+def dataloader_bow(bow, train_set, batch_size, shuffle=True):
     len_train = len(train_set)
     num_batch = len_train // batch_size
     for i in range(0, num_batch * batch_size, batch_size):
         X = np.array([bow.generate_bag(phrase) for phrase in bow.corpus[i:i + batch_size]])
-        y = np.array(bow.label[i:i + batch_size])
+        labels = np.array(bow.cls[i:i + batch_size])
         if shuffle:
-            concat = np.concatenate((X, y.reshape(batch_size, -1)), dim=1)
+            concat = np.concatenate((X, labels.reshape(batch_size, -1)), axis=1)
             np.random.shuffle(concat)
             X = concat[:, 0:-1]
-            y = concat[:, -1]
+            labels = concat[:, -1]
+        y = list(map(lambda x: int(x - 1), labels))
+        print(y)
+        y = np.eye(bow.num_cls, dtype=np.float32)[y]
         yield X, y
 
 
@@ -60,6 +64,6 @@ if __name__ == '__main__':
     bow = BOW('./data/train.tsv')
     train_set, test_set = train_test_split(bow)
     print(len(train_set))
-    for X, y in dataloader_bow(train_set, 32):
+    for X, y in dataloader_bow(bow, train_set, 32):
         print(X.shape, y.shape)
         break

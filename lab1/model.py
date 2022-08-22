@@ -41,7 +41,7 @@ class ScratchTextClassifier:
         self.activated_output.append(activated)
         return activated
 
-    def backward(self,y):
+    def backward(self, y):
         dw = []
         db = []
         return dw, db
@@ -49,3 +49,10 @@ class ScratchTextClassifier:
     def update_params(self, lr, dw, db):
         self.weights = [W - lr * grad_w for W, grad_w in zip(self.weights, dw)]
         self.biases = [b - lr * grad_b for b, grad_b in zip(self.biases, db)]
+
+
+'''
+test code
+'''
+if __name__ == '__main__':
+    pass

@@ -72,10 +72,3 @@ def dataloader_bow(bow, train_set, batch_size, shuffle=True):
         yield X, y
 
 
-if __name__ == '__main__':
-    bow = BOW('./data/train.tsv', mode='r')
-    train_set, test_set = train_test_split(bow)
-    print(len(train_set))
-    for X, y in dataloader_bow(bow, train_set, 32):
-        print(X.shape, y.shape)
-        break

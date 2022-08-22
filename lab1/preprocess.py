@@ -1,26 +1,39 @@
 import pandas as pd
 import numpy as np
+import pickle as pkl
 
 
 class BOW:
-    def __init__(self, train_path):
+    def __init__(self, train_path, data_path='./proceeded_data/data.pkl', mode='r'):
         df = pd.read_csv(train_path, sep='\t')
         self.corpus = df['Phrase']
         self.cls = df['Sentiment']
         self.vocab = []  # index-vocabulary
         self.num_cls = len(set(self.cls))
         self.idx = dict()  # vocabulary-index
-        for phrase in self.corpus:
-            phrase = phrase.lower()
-            self.vocab = list(set(self.vocab + phrase.split(' ')))
-        for i, voc in enumerate(self.vocab):
-            self.idx[voc] = i
-        # delete null character
-        self.vocab.remove('')
-        self.idx.pop('')
+        if mode == 'w':
+            for phrase in self.corpus:
+                phrase = phrase.lower()
+                self.vocab = list(set(self.vocab + phrase.split(' ')))
+            for i, voc in enumerate(self.vocab):
+                self.idx[voc] = i
+            # delete null character
+            self.vocab.remove('')
+            self.idx.pop('')
+            # save data to .pkl file
+            data = dict()
+            data['vocab'] = self.vocab
+            data['idx'] = self.idx
+            with open(data_path, 'wb') as wf:
+                pkl.dump(data, wf)
+        elif mode == 'r':
+            with open(data_path, 'rb') as rf:
+                data = pkl.load(rf)
+            self.vocab = data['vocab']
+            self.idx = data['idx']
 
-    def __getitem__(self, item):
-        return self.vocab[item]
+    def __getitem__(self, idx):
+        return self.vocab[idx]
 
     def voc2idx(self, voc):
         return self.idx.get(voc, -1)
@@ -55,13 +68,12 @@ def dataloader_bow(bow, train_set, batch_size, shuffle=True):
             X = concat[:, 0:-1]
             labels = concat[:, -1]
         y = list(map(lambda x: int(x - 1), labels))
-        print(y)
         y = np.eye(bow.num_cls, dtype=np.float32)[y]
         yield X, y
 
 
 if __name__ == '__main__':
-    bow = BOW('./data/train.tsv')
+    bow = BOW('./data/train.tsv', mode='r')
     train_set, test_set = train_test_split(bow)
     print(len(train_set))
     for X, y in dataloader_bow(bow, train_set, 32):

@@ -3,8 +3,21 @@ import numpy as np
 import pickle as pkl
 
 
+def train_test_split(bow, test_ratio=0.2):
+    len_all = len(bow.corpus)
+    len_train = int(len_all * (1 - test_ratio))
+    train_set = bow.corpus[:len_train]
+    test_set = bow.corpus[len_train + 1:]
+    return train_set, test_set
+
+
+'''
+Bag of Words
+'''
+
+
 class BOW:
-    def __init__(self, train_path, data_path='./proceeded_data/data.pkl', mode='r'):
+    def __init__(self, train_path='./data/train.tsv', data_path='./proceeded_data/bow.pkl', mode='r'):
         df = pd.read_csv(train_path, sep='\t')
         self.corpus = df['Phrase']
         self.cls = df['Sentiment']
@@ -48,14 +61,6 @@ class BOW:
         return bag
 
 
-def train_test_split(bow, test_ratio=0.2):
-    len_all = len(bow.corpus)
-    len_train = int(len_all * (1 - test_ratio))
-    train_set = bow.corpus[:len_train]
-    test_set = bow.corpus[len_train + 1:]
-    return train_set, test_set
-
-
 def dataloader_bow(bow, train_set, batch_size, shuffle=True):
     len_train = len(train_set)
     num_batch = len_train // batch_size
@@ -73,12 +78,17 @@ def dataloader_bow(bow, train_set, batch_size, shuffle=True):
 
 
 '''
+N-gram
+'''
+# TBA
+
+'''
 test code
 '''
-# if __name__ == '__main__':
-#     bow = BOW('./data/train.tsv', mode='r')
-#     train_set, test_set = train_test_split(bow)
-#     print(len(train_set))
-#     for X, y in dataloader_bow(bow, train_set, 32):
-#         print(X.shape, y.shape)
-#         break
+if __name__ == '__main__':
+    bow = BOW()
+    train_set, test_set = train_test_split(bow)
+    print(len(train_set))
+    for X, y in dataloader_bow(bow, train_set, 32):
+        print(X.reshape((32, 1, -1)).shape, y[0].reshape(1, -1).shape)
+        break

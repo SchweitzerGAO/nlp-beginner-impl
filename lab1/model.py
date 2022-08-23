@@ -1,6 +1,10 @@
 import numpy as np
 from preprocess import BOW, train_test_split, dataloader_bow
 
+'''
+utils
+'''
+
 
 # softmax
 def softmax(x):
@@ -19,7 +23,19 @@ def relu(x):
     return np.max(0, x)
 
 
-# an MLP classifier
+def relu_prime(p):
+    prime = np.zeros_like(p)
+    prime[p > 0] = 1
+    prime[p < 0] = 0
+    prime[p == 0] = 0.5
+    return prime
+
+
+'''
+an MLP classifier
+'''
+
+
 class ScratchTextClassifier:
     def __init__(self, len_vocab, num_cls, num_hidden=256):
         self.len_vocab = len_vocab
@@ -48,7 +64,13 @@ class ScratchTextClassifier:
     def backward(self, y):
         dw = [np.zeros(w.shape) for w in self.weights]
         db = [np.zeros(b.shape) for b in self.biases]
-
+        loss, delta = cross_entropy(y, self.X[-1])
+        batch_size = len(y)
+        for layer_idx in range(len(dw), 0, -1):
+            x = self.X[layer_idx - 1]
+            db[layer_idx] = np.sum(delta, axis=0) / batch_size
+            dw[layer_idx] = np.sum(x.T @ delta, axis=0) / batch_size
+            delta = (delta @ self.weights[layer_idx - 1]) * relu_prime(self.P[layer_idx - 1])
         return dw, db
 
     def update_params(self, lr, dw, db):

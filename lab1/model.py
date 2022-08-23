@@ -20,7 +20,7 @@ def cross_entropy(y, y_hat):  # y is gt and y_hat is prediction
 
 # relu
 def relu(x):
-    return np.max(0, x)
+    return np.maximum(0, x)
 
 
 def relu_prime(p):
@@ -43,7 +43,7 @@ class ScratchTextClassifier:
         self.num_hidden = num_hidden
         self.weights = [np.random.randn(self.len_vocab, self.num_hidden),
                         np.random.randn(self.num_hidden, self.num_cls)]
-        self.biases = [np.zeros(1, self.num_hidden), np.zeros(1, self.num_cls)]
+        self.biases = [np.zeros((1, self.num_hidden)), np.zeros((1, self.num_cls))]
         self.P = []
         self.X = []
 
@@ -51,7 +51,8 @@ class ScratchTextClassifier:
         return self.forward(x)
 
     def forward(self, x):
-        for layer_idx, W, b in enumerate(zip(self.weights, self.biases)):
+        self.X.append(x)
+        for layer_idx, (W, b) in enumerate(zip(self.weights, self.biases)):
             p = x @ W + b
             self.P.append(p)
             if layer_idx < len(self.weights) - 1:
@@ -65,12 +66,15 @@ class ScratchTextClassifier:
         dw = [np.zeros(w.shape) for w in self.weights]
         db = [np.zeros(b.shape) for b in self.biases]
         loss, delta = cross_entropy(y, self.X[-1])
+        print(delta.shape)
         batch_size = len(y)
-        for layer_idx in range(len(dw), 0, -1):
-            x = self.X[layer_idx - 1]
-            db[layer_idx] = np.sum(delta, axis=0) / batch_size
-            dw[layer_idx] = np.sum(x.T @ delta, axis=0) / batch_size
-            delta = (delta @ self.weights[layer_idx - 1]) * relu_prime(self.P[layer_idx - 1])
+        for layer_idx in range(len(self.X), 1, -1):
+            print(layer_idx)
+            x = self.X[layer_idx - 2]
+            db[layer_idx - 2] = np.sum(delta, axis=0) / batch_size
+            dw[layer_idx - 2] = np.sum(x.T @ delta, axis=0) / batch_size
+            if layer_idx >= 3:
+                delta = (delta @ self.weights[layer_idx - 2].T) * relu_prime(self.P[layer_idx - 3])
         return dw, db
 
     def update_params(self, lr, dw, db):
@@ -82,4 +86,13 @@ class ScratchTextClassifier:
 test code
 '''
 if __name__ == '__main__':
-    pass
+    batch_size = 32
+    bow = BOW()
+    train_set, test_set = train_test_split(bow)
+    net = ScratchTextClassifier(len(bow.vocab), bow.num_cls)
+    for X, y in dataloader_bow(bow, train_set, batch_size):
+        X = X.reshape((batch_size,1,-1))
+        y = y.reshape((batch_size,1,-1))
+        y_hat = net(X)
+        dw, db = net.backward(y)
+        break

@@ -15,7 +15,7 @@ def softmax(x):
 
 # cross entropy
 def cross_entropy(y, y_hat):  # y is gt and y_hat is prediction
-    return -np.sum(y * np.log(y_hat), axis=-1), y_hat - y  # the second one is the derivative of softmax
+    return np.sum(-y * np.log(y_hat), axis=-1), y_hat - y  # the second one is the derivative of softmax
 
 
 # relu
@@ -66,15 +66,14 @@ class ScratchTextClassifier:
         dw = [np.zeros(w.shape) for w in self.weights]
         db = [np.zeros(b.shape) for b in self.biases]
         loss, delta = cross_entropy(y, self.X[-1])
-        print(delta.shape)
         batch_size = len(y)
-        for layer_idx in range(len(self.X), 1, -1):
-            print(layer_idx)
-            x = self.X[layer_idx - 2]
-            db[layer_idx - 2] = np.sum(delta, axis=0) / batch_size
-            dw[layer_idx - 2] = np.sum(x.T @ delta, axis=0) / batch_size
-            if layer_idx >= 3:
-                delta = (delta @ self.weights[layer_idx - 2].T) * relu_prime(self.P[layer_idx - 3])
+        for layer_idx in range(len(self.X) - 2, -1, -1):
+            x = self.X[layer_idx]
+            x = x.swapaxes(1, 2)
+            db[layer_idx] = np.sum(delta, axis=0) / batch_size
+            dw[layer_idx] = np.sum(np.einsum('ijk,ikn->ijn', x, delta),axis=0) / batch_size
+            if layer_idx >= 1:
+                delta = (delta @ self.weights[layer_idx].T) * relu_prime(self.P[layer_idx - 1])
         return dw, db
 
     def update_params(self, lr, dw, db):
@@ -91,8 +90,8 @@ if __name__ == '__main__':
     train_set, test_set = train_test_split(bow)
     net = ScratchTextClassifier(len(bow.vocab), bow.num_cls)
     for X, y in dataloader_bow(bow, train_set, batch_size):
-        X = X.reshape((batch_size,1,-1))
-        y = y.reshape((batch_size,1,-1))
+        X = X.reshape((batch_size, 1, -1))
+        y = y.reshape((batch_size, 1, -1))
         y_hat = net(X)
         dw, db = net.backward(y)
         break

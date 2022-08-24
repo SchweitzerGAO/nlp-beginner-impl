@@ -1,5 +1,5 @@
 import numpy as np
-from preprocess import BOW, train_test_split, dataloader_bow
+from preprocess import BOW, train_test_split, dataloader
 
 '''
 utils
@@ -71,10 +71,10 @@ class ScratchTextClassifier:
             x = self.X[layer_idx]
             x = x.swapaxes(1, 2)
             db[layer_idx] = np.sum(delta, axis=0) / batch_size
-            dw[layer_idx] = np.sum(np.einsum('ijk,ikn->ijn', x, delta),axis=0) / batch_size
+            dw[layer_idx] = np.sum(np.einsum('ijk,ikn->ijn', x, delta), axis=0) / batch_size
             if layer_idx >= 1:
                 delta = (delta @ self.weights[layer_idx].T) * relu_prime(self.P[layer_idx - 1])
-        return dw, db
+        return loss, dw, db
 
     def update_params(self, lr, dw, db):
         self.weights = [W - lr * grad_w for W, grad_w in zip(self.weights, dw)]
@@ -84,14 +84,16 @@ class ScratchTextClassifier:
 '''
 test code
 '''
-if __name__ == '__main__':
-    batch_size = 32
-    bow = BOW()
-    train_set, test_set = train_test_split(bow)
-    net = ScratchTextClassifier(len(bow.vocab), bow.num_cls)
-    for X, y in dataloader_bow(bow, train_set, batch_size):
-        X = X.reshape((batch_size, 1, -1))
-        y = y.reshape((batch_size, 1, -1))
-        y_hat = net(X)
-        dw, db = net.backward(y)
-        break
+# if __name__ == '__main__':
+#     batch_size = 32
+#     lr = 0.1
+#     bow = BOW()
+#     train_set, test_set = train_test_split(bow)
+#     net = ScratchTextClassifier(len(bow.vocab), bow.num_cls)
+#     for X, y in dataloader_bow(bow, train_set, batch_size):
+#         X = X.reshape((batch_size, 1, -1))
+#         y = y.reshape((batch_size, 1, -1))
+#         y_hat = net(X)
+#         loss, dw, db = net.backward(y)
+#         net.update_params(lr, dw, db)
+#         break

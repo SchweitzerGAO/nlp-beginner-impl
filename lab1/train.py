@@ -8,20 +8,26 @@ test_acc = []
 epochs = []
 
 
-def accuracy(y, y_hat):
-    return None
+def accuracy(y, y_hat):  # y is gt and y_hat is prediction
+    y_hat = y_hat.argmax(axis=2)
+    y = y.argmax(axis=2)
+    print((y_hat == y).sum())
+    print(len(y))
+    return (y_hat == y).sum() / len(y)
 
 
-def test_accuracy(net, test_set):
-    return None
+def test_accuracy(net, test_set,test_label):
+    pass
 
 
-def train_epoch(feature_extractor, net, train_set, batch_size, lr):
+def train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr):
     gross_loss = 0
     gross_train_acc = 0
     num_batch = 0
-    for X, y in dataloader(feature_extractor, train_set, batch_size):
+    for X, y in dataloader(feature_extractor, train_set, train_label, batch_size):
         num_batch += 1
+        X = X.reshape((batch_size, 1, -1))
+        y = y.reshape((batch_size, 1, -1))
         y_hat = net(X)
         loss, dw, db = net.backward(y)
         net.update_params(lr, dw, db)
@@ -31,11 +37,11 @@ def train_epoch(feature_extractor, net, train_set, batch_size, lr):
     train_acc.append(gross_train_acc / num_batch)
 
 
-def train(feature_extractor, net, train_set, test_set, batch_size, lr, num_epochs):
+def train(feature_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs):
     for epoch in range(num_epochs):
         epochs.append(epoch + 1)
-        train_epoch(feature_extractor, net, train_set, batch_size, lr)
-        test_acc.append(test_accuracy(net, test_set))
+        train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr)
+        test_acc.append(test_accuracy(net, test_set,test_label))
         print(
             f'Epoch({epoch + 1}/{num_epochs}): loss:{train_loss[epoch]}; train_acc:{train_acc[epoch] * 100.}%; '
             f'test_acc:{test_acc[epoch] * 100.}%')

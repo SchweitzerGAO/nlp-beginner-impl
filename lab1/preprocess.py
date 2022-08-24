@@ -78,23 +78,25 @@ def train_test_split(feature_extractor, test_ratio=0.2):
     len_all = len(feature_extractor.corpus)
     len_train = int(len_all * (1 - test_ratio))
     train_set = feature_extractor.corpus[:len_train]
+    train_label = feature_extractor.cls[:len_train]
     test_set = feature_extractor.corpus[len_train + 1:]
-    return train_set, test_set
+    test_label = feature_extractor.cls[len_train + 1:]
+    return list(train_set), list(test_set), list(train_label), list(test_label)
 
 
-def dataloader(feature_extractor, train_set, batch_size, shuffle=True):
-    len_train = len(train_set)
+def dataloader(feature_extractor, data, labels, batch_size, shuffle=True):
+    len_train = len(data)
     num_batch = len_train // batch_size
     for i in range(0, num_batch * batch_size, batch_size):
         X = np.array(
-            [feature_extractor.generate_feature(phrase) for phrase in feature_extractor.corpus[i:i + batch_size]])
-        labels = np.array(feature_extractor.cls[i:i + batch_size])
+            [feature_extractor.generate_feature(phrase) for phrase in data[i:i + batch_size]])
+        label = np.array(labels[i:i + batch_size])
         if shuffle:
-            concat = np.concatenate((X, labels.reshape(batch_size, -1)), axis=1)
+            concat = np.concatenate((X, label.reshape(batch_size, -1)), axis=1)
             np.random.shuffle(concat)
             X = concat[:, 0:-1]
-            labels = concat[:, -1]
-        y = list(map(lambda x: int(x - 1), labels))
+            label = concat[:, -1]
+        y = list(map(lambda x: int(x - 1), label))
         y = np.eye(feature_extractor.num_cls, dtype=np.float32)[y]
         yield X, y
 
@@ -104,8 +106,8 @@ test code
 '''
 if __name__ == '__main__':
     bow = BOW()
-    train_set, test_set = train_test_split(bow)
+    train_set, test_set, train_label, test_label = train_test_split(bow)
     print(len(train_set))
-    for X, y in dataloader(bow, train_set, 32):
+    for X, y in dataloader(bow, train_set, train_label, 32):
         print(X.reshape((32, 1, -1)).shape, y[0].reshape(1, -1).shape)
         break

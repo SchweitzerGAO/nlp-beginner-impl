@@ -51,6 +51,7 @@ class ScratchTextClassifier:
         return self.forward(x)
 
     def forward(self, x):
+        self.X.clear()
         self.X.append(x)
         for layer_idx, (W, b) in enumerate(zip(self.weights, self.biases)):
             p = x @ W + b
@@ -84,16 +85,16 @@ class ScratchTextClassifier:
 '''
 test code
 '''
-# if __name__ == '__main__':
-#     batch_size = 32
-#     lr = 0.1
-#     bow = BOW()
-#     train_set, test_set = train_test_split(bow)
-#     net = ScratchTextClassifier(len(bow.vocab), bow.num_cls)
-#     for X, y in dataloader_bow(bow, train_set, batch_size):
-#         X = X.reshape((batch_size, 1, -1))
-#         y = y.reshape((batch_size, 1, -1))
-#         y_hat = net(X)
-#         loss, dw, db = net.backward(y)
-#         net.update_params(lr, dw, db)
-#         break
+if __name__ == '__main__':
+    batch_size = 32
+    lr = 0.1
+    bow = BOW()
+    train_set, test_set, train_label, test_label = train_test_split(bow)
+    net = ScratchTextClassifier(len(bow.vocab), bow.num_cls)
+    for X, y in dataloader(bow, test_set, test_label,batch_size):
+        X = X.reshape((batch_size, 1, -1))
+        y = y.reshape((batch_size, 1, -1))
+        y_hat = net(X)
+        loss, dw, db = net.backward(y)
+        net.update_params(lr, dw, db)
+        break

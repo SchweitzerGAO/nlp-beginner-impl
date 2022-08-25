@@ -11,18 +11,22 @@ epochs = []
 def accuracy(y, y_hat):  # y is gt and y_hat is prediction
     y_hat = y_hat.argmax(axis=2)
     y = y.argmax(axis=2)
-    print((y_hat == y).sum())
-    print(len(y))
     return (y_hat == y).sum() / len(y)
 
 
-def test_accuracy(net, test_set,test_label):
-    pass
+def test_accuracy(feature_extractor, net, test_set, test_label, batch_size):
+    gross_acc = 0.
+    num_batch = 0
+    for X, y in dataloader(feature_extractor, test_set, test_label, batch_size, shuffle=False):
+        num_batch += 1
+        y_hat = net(X)
+        gross_acc += accuracy(y, y_hat)
+    return gross_acc / num_batch
 
 
 def train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr):
-    gross_loss = 0
-    gross_train_acc = 0
+    gross_loss = 0.
+    gross_train_acc = 0.
     num_batch = 0
     for X, y in dataloader(feature_extractor, train_set, train_label, batch_size):
         num_batch += 1
@@ -41,7 +45,7 @@ def train(feature_extractor, net, train_set, train_label, test_set, test_label, 
     for epoch in range(num_epochs):
         epochs.append(epoch + 1)
         train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr)
-        test_acc.append(test_accuracy(net, test_set,test_label))
+        test_acc.append(test_accuracy(net, test_set, test_label))
         print(
             f'Epoch({epoch + 1}/{num_epochs}): loss:{train_loss[epoch]}; train_acc:{train_acc[epoch] * 100.}%; '
             f'test_acc:{test_acc[epoch] * 100.}%')
@@ -59,4 +63,10 @@ def train(feature_extractor, net, train_set, train_label, test_set, test_label, 
 
 
 if __name__ == '__main__':
-    pass
+    lr = 0.1
+    num_epochs = 10
+    batch_size = 128
+    bow_extractor = BOW()
+    net = ScratchTextClassifier(len(bow_extractor.vocab), bow_extractor.num_cls)
+    train_set, test_set, train_label, test_label = train_test_split(bow_extractor)
+    train(bow_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs)

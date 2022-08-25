@@ -23,6 +23,7 @@ def relu(x):
     return np.maximum(0, x)
 
 
+# derivative of relu
 def relu_prime(p):
     prime = np.zeros_like(p)
     prime[p > 0] = 1
@@ -52,6 +53,7 @@ class ScratchTextClassifier:
 
     def forward(self, x):
         self.X.clear()
+        self.P.clear()
         self.X.append(x)
         for layer_idx, (W, b) in enumerate(zip(self.weights, self.biases)):
             p = x @ W + b
@@ -91,7 +93,7 @@ if __name__ == '__main__':
     bow = BOW()
     train_set, test_set, train_label, test_label = train_test_split(bow)
     net = ScratchTextClassifier(len(bow.vocab), bow.num_cls)
-    for X, y in dataloader(bow, test_set, test_label,batch_size):
+    for X, y in dataloader(bow, test_set, test_label, batch_size):
         X = X.reshape((batch_size, 1, -1))
         y = y.reshape((batch_size, 1, -1))
         y_hat = net(X)

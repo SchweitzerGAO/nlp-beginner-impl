@@ -28,11 +28,9 @@ class BOW(FeatureExtractor):
             for phrase in self.corpus:
                 phrase = phrase.lower()
                 self.vocab = list(set(self.vocab + phrase.split(' ')))
+            self.vocab.remove('')
             for i, voc in enumerate(self.vocab):
                 self.idx[voc] = i
-            # delete null character
-            self.vocab.remove('')
-            self.idx.pop('')
             # save data to .pkl file
             data = dict()
             data['vocab'] = self.vocab

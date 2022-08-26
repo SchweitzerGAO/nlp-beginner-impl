@@ -38,13 +38,13 @@ an MLP classifier
 
 
 class ScratchTextClassifier:
-    def __init__(self, len_vocab, num_cls, num_hidden=256):
-        self.len_vocab = len_vocab
-        self.num_cls = num_cls
-        self.num_hidden = num_hidden
-        self.weights = [np.random.randn(self.len_vocab, self.num_hidden),
-                        np.random.randn(self.num_hidden, self.num_cls)]
-        self.biases = [np.zeros((1, self.num_hidden)), np.zeros((1, self.num_cls))]
+    def __init__(self, net_arch):
+        assert net_arch is not None
+        self.net_arch = net_arch
+        self.weights = [np.random.randn(in_channel, out_channel)
+                        for in_channel, out_channel
+                        in zip(self.net_arch[:-1], self.net_arch[1:])]
+        self.biases = [np.zeros((1, channel)) for channel in self.net_arch[1:]]
         self.P = []
         self.X = []
 
@@ -70,7 +70,7 @@ class ScratchTextClassifier:
         db = [np.zeros(b.shape) for b in self.biases]
         loss, delta = cross_entropy(y, self.X[-1])
         batch_size = len(y)
-        for layer_idx in range(len(self.X) - 2, -1, -1):
+        for layer_idx in range(len(self.weights) - 1, -1, -1):
             x = self.X[layer_idx]
             x = x.swapaxes(1, 2)
             db[layer_idx] = np.sum(delta, axis=0) / batch_size
@@ -92,11 +92,12 @@ if __name__ == '__main__':
     lr = 0.1
     bow = BOW()
     train_set, test_set, train_label, test_label = train_test_split(bow)
-    net = ScratchTextClassifier(len(bow.vocab), bow.num_cls)
+    net = ScratchTextClassifier([len(bow.vocab), bow.num_cls])
     for X, y in dataloader(bow, test_set, test_label, batch_size):
         X = X.reshape((batch_size, 1, -1))
         y = y.reshape((batch_size, 1, -1))
         y_hat = net(X)
         loss, dw, db = net.backward(y)
+        print(loss.shape)
         net.update_params(lr, dw, db)
         break

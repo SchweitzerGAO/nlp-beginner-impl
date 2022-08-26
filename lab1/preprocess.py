@@ -8,22 +8,30 @@ Bag of Words
 
 
 class FeatureExtractor:
-    def __init__(self):
-        pass
-
-    def generate_feature(self, phrase):
-        raise NotImplementedError
-
-
-class BOW(FeatureExtractor):
-    def __init__(self, train_path='./data/train.tsv', data_path='./proceeded_data/bow.pkl', mode='r'):
-        super().__init__()
+    def __init__(self, train_path='./data/train.tsv'):
         df = pd.read_csv(train_path, sep='\t')
         self.corpus = df['Phrase']
         self.cls = df['Sentiment']
         self.vocab = []  # index-vocabulary
         self.num_cls = len(set(self.cls))
         self.idx = dict()  # vocabulary-index
+
+    def generate_data(self, mode, data_path):
+        raise NotImplementedError
+
+    def voc2idx(self, voc):
+        return NotImplementedError
+
+    def generate_feature(self, phrase):
+        raise NotImplementedError
+
+
+class BOW(FeatureExtractor):
+    def __init__(self, data_path='./proceeded_data/bow.pkl', mode='r'):
+        super().__init__()
+        self.generate_data(mode, data_path)
+
+    def generate_data(self, mode, data_path):
         if mode == 'w':
             for phrase in self.corpus:
                 phrase = phrase.lower()
@@ -42,9 +50,6 @@ class BOW(FeatureExtractor):
                 data = pkl.load(rf)
             self.vocab = data['vocab']
             self.idx = data['idx']
-
-    def __getitem__(self, idx):
-        return self.vocab[idx]
 
     def voc2idx(self, voc):
         return self.idx.get(voc, -1)
@@ -65,8 +70,15 @@ N-gram
 
 
 class NGram(FeatureExtractor):
-    def __init__(self):
+    def __init__(self,data_path='./proceeded_data/ngram.pkl', mode='r'):
         super().__init__()
+        self.generate_data(mode,data_path)
+
+    def generate_data(self, mode, data_path):
+        pass
+
+    def voc2idx(self, voc):
+        pass
 
     def generate_feature(self, phrase):
         pass

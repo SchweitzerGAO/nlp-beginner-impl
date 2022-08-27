@@ -3,7 +3,7 @@ import numpy as np
 import pickle as pkl
 
 '''
-Bag of Words
+Base class
 '''
 
 
@@ -20,21 +20,28 @@ class FeatureExtractor:
     def generate_data(self, mode, data_path):
         raise NotImplementedError
 
+    def choose_feature(self, max_features, mode, data_path):
+        raise NotImplementedError
+
     def voc2idx(self, voc):
         raise NotImplementedError
 
     def generate_feature(self, phrase):
         raise NotImplementedError
 
-    def choose_feature(self, max_features):  # choose features that mostly appears
-        pass
 
+'''
+Bag of Words
+'''
 
 
 class BOW(FeatureExtractor):
-    def __init__(self, data_path='./proceeded_data/bow.pkl', mode='r'):
-        super().__init__()
-        self.generate_data(mode, data_path)
+    def __init__(self, max_features=None, data_path='./proceeded_data/bow.pkl', mode='r'):
+        super().__init__(max_features=max_features)
+        if self.max_features is None:
+            self.generate_data(mode, data_path)
+        else:
+            self.choose_feature(self.max_features, mode, data_path)
 
     def generate_data(self, mode, data_path):
         if mode == 'w':
@@ -42,8 +49,36 @@ class BOW(FeatureExtractor):
                 phrase = phrase.lower()
                 self.vocab = list(set(self.vocab + phrase.split(' ')))
             self.vocab.remove('')
-            if self.max_features is not None:
-                self.choose_feature(self.max_features)
+            for i, voc in enumerate(self.vocab):
+                self.idx[voc] = i
+            # save data to .pkl file
+            data = dict()
+            data['vocab'] = self.vocab
+            data['idx'] = self.idx
+            with open(data_path, 'wb') as wf:
+                pkl.dump(data, wf)
+        elif mode == 'r':
+            with open(data_path, 'rb') as rf:
+                data = pkl.load(rf)
+            self.vocab = data['vocab']
+            self.idx = data['idx']
+
+    def choose_feature(self, max_features, mode, data_path):
+        if mode == 'w':
+            word_count = dict()
+            for sentence in list(self.corpus):
+                sentence = sentence.lower()
+                words = sentence.split()
+                for word in words:
+                    cnt = word_count.get(word, None)
+                    if cnt is None:
+                        word_count[word] = words.count(word)
+                    else:
+                        word_count[word] += words.count(word)
+            word_count = sorted(word_count.items(), key=lambda x: x[1], reverse=True)
+            self.vocab = [tpl[0] for tpl in word_count[:max_features]]
+            if '' in self.vocab:
+                self.vocab.remove('')
             for i, voc in enumerate(self.vocab):
                 self.idx[voc] = i
             # save data to .pkl file
@@ -77,12 +112,18 @@ N-gram
 
 
 class NGram(FeatureExtractor):
-    def __init__(self, n, data_path='./proceeded_data/ngram.pkl', mode='r'):
-        super().__init__()
+    def __init__(self, n, max_features=None, data_path='./proceeded_data/ngram.pkl', mode='r'):
+        super().__init__(max_features=max_features)
         self.n = n
-        self.generate_data(mode, data_path)
+        if self.max_features is None:
+            self.generate_data(mode, data_path)
+        else:
+            self.choose_feature(self.max_features, mode, data_path)
 
     def generate_data(self, mode, data_path):
+        pass
+
+    def choose_feature(self, max_features, mode, data_path):
         pass
 
     def voc2idx(self, voc):
@@ -123,7 +164,7 @@ def dataloader(feature_extractor, data, labels, batch_size, shuffle=True):
 test code
 '''
 if __name__ == '__main__':
-    bow = BOW()
+    bow = BOW(max_features=1500, data_path='./proceeded_data/bow_1500.pkl', mode='w')
     train_set, test_set, train_label, test_label = train_test_split(bow)
     print(len(train_set))
     for X, y in dataloader(bow, train_set, train_label, 32):

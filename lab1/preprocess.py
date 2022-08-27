@@ -8,10 +8,11 @@ Bag of Words
 
 
 class FeatureExtractor:
-    def __init__(self, train_path='./data/train.tsv'):
+    def __init__(self, train_path='./data/train.tsv', max_features=None):
         df = pd.read_csv(train_path, sep='\t')
         self.corpus = df['Phrase']
         self.cls = df['Sentiment']
+        self.max_features = max_features
         self.vocab = []  # index-vocabulary
         self.num_cls = len(set(self.cls))
         self.idx = dict()  # vocabulary-index
@@ -20,10 +21,14 @@ class FeatureExtractor:
         raise NotImplementedError
 
     def voc2idx(self, voc):
-        return NotImplementedError
+        raise NotImplementedError
 
     def generate_feature(self, phrase):
         raise NotImplementedError
+
+    def choose_feature(self, max_features):  # choose features that mostly appears
+        pass
+
 
 
 class BOW(FeatureExtractor):
@@ -37,6 +42,8 @@ class BOW(FeatureExtractor):
                 phrase = phrase.lower()
                 self.vocab = list(set(self.vocab + phrase.split(' ')))
             self.vocab.remove('')
+            if self.max_features is not None:
+                self.choose_feature(self.max_features)
             for i, voc in enumerate(self.vocab):
                 self.idx[voc] = i
             # save data to .pkl file
@@ -70,9 +77,10 @@ N-gram
 
 
 class NGram(FeatureExtractor):
-    def __init__(self,data_path='./proceeded_data/ngram.pkl', mode='r'):
+    def __init__(self, n, data_path='./proceeded_data/ngram.pkl', mode='r'):
         super().__init__()
-        self.generate_data(mode,data_path)
+        self.n = n
+        self.generate_data(mode, data_path)
 
     def generate_data(self, mode, data_path):
         pass
@@ -99,7 +107,7 @@ def dataloader(feature_extractor, data, labels, batch_size, shuffle=True):
     num_batch = len_train // batch_size
     for i in range(0, num_batch * batch_size, batch_size):
         X = np.array(
-            [feature_extractor.generate_feature(phrase) for phrase in data[i:i + batch_size]])
+            [feature_extractor.generate_feature(phrase) for phrase in data[i:i + batch_size]], dtype=np.float64)
         label = np.array(labels[i:i + batch_size])
         if shuffle:
             concat = np.concatenate((X, label.reshape(batch_size, -1)), axis=1)
@@ -107,7 +115,7 @@ def dataloader(feature_extractor, data, labels, batch_size, shuffle=True):
             X = concat[:, 0:-1]
             label = concat[:, -1]
         y = list(map(lambda x: int(x - 1), label))
-        y = np.eye(feature_extractor.num_cls, dtype=np.float32)[y]
+        y = np.eye(feature_extractor.num_cls, dtype=np.float64)[y]
         yield X, y
 
 

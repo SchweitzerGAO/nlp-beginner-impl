@@ -1,7 +1,9 @@
-import numpy as np
-from preprocess import BOW, train_test_split, dataloader
-from model import ScratchTextClassifier
+import pickle as pkl
+
 from matplotlib import pyplot as plt
+
+from model import ScratchTextClassifier
+from preprocess import BOW, NGram, train_test_split, dataloader
 
 train_loss = []
 train_acc = []
@@ -38,7 +40,7 @@ def train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr):
         y_hat = net(X)
         loss, dw, db = net.backward(y)
         net.update_params(lr, dw, db)
-        gross_loss += loss.sum()
+        gross_loss += loss
         gross_train_acc += (accuracy(y, y_hat))
     train_loss.append(gross_loss / num_batch)
     train_acc.append(gross_train_acc / num_batch)
@@ -54,22 +56,24 @@ def train(feature_extractor, net, train_set, train_label, test_set, test_label, 
             f'loss:{round(train_loss[epoch], 4)}; '
             f'train_acc:{round(train_acc[epoch] * 100., 4)} %; '
             f'test_acc:{round(test_acc[epoch] * 100., 4)} %')
-        if (epoch + 1) % 10 == 0:
+        if (epoch + 1) % 100 == 0:
             params = dict()
             params['weights'] = net.weights
             params['biases'] = net.biases
             file_path = './saved_model'
             if isinstance(feature_extractor, BOW):
-                file_path += f'/bow/{batch_size}_{lr}_{epoch + 1}.npy'
-            else:
-                file_path += f'/ngram/{batch_size}_{lr}_{epoch + 1}.npy'
+                file_path += f'/bow/{batch_size}_{lr}_{epoch + 1}.pkl'
+            elif isinstance(feature_extractor,NGram):
+                file_path += f'/ngram/{batch_size}_{lr}_{epoch + 1}.pkl'
             with open(file_path, 'wb') as wf:
-                np.save(wf, params)
+                pkl.dump(params,wf)
+
+    plot_train(num_epochs)
 
 
-def plot_train():
+def plot_train(epoch):
     # train loss figure
-    plt.subplot(1, 3, 1)
+    plt.subplot(3, 1, 1)
     plt.title('Loss')
     plt.plot(epochs, train_loss, c='r', label='loss')
     plt.xlabel('epochs')
@@ -77,7 +81,7 @@ def plot_train():
     plt.legend()
 
     # train acc
-    plt.subplot(1, 3, 2)
+    plt.subplot(3, 1, 2)
     plt.title('Train Accuracy')
     plt.plot(epochs, train_acc, c='r', label=' train accuracy')
     plt.xlabel('Epochs')
@@ -85,7 +89,7 @@ def plot_train():
     plt.legend()
 
     # test acc
-    plt.subplot(1, 3, 3)
+    plt.subplot(3, 1, 3)
     plt.title('Test Accuracy')
     plt.plot(epochs, train_loss, c='r', label='test accuracy')
     plt.xlabel('Epochs')
@@ -94,15 +98,14 @@ def plot_train():
 
     plt.tight_layout()
     plt.show()
-    plt.savefig('./train.png')
+    plt.savefig(f'./train_{epoch}.png')
 
 
 if __name__ == '__main__':
-    lr = 5.
-    num_epochs = 200
+    lr = 2.5
+    num_epochs = 400
     batch_size = 64
     bow_extractor = BOW()
-    net = ScratchTextClassifier([len(bow_extractor.vocab), bow_extractor.num_cls])
+    net = ScratchTextClassifier([len(bow_extractor.vocab),bow_extractor.num_cls])
     train_set, test_set, train_label, test_label = train_test_split(bow_extractor)
     train(bow_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs)
-    plot_train()

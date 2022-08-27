@@ -1,6 +1,6 @@
 import numpy as np
 from preprocess import BOW, train_test_split, dataloader
-
+import pickle as pkl
 '''
 utils
 '''
@@ -15,7 +15,8 @@ def softmax(x):
 
 # cross entropy
 def cross_entropy(y, y_hat):  # y is gt and y_hat is prediction
-    return np.sum(-y * np.log(y_hat), axis=-1), y_hat - y  # the second one is the derivative of softmax
+
+    return np.mean(np.sum(-y * np.log(y_hat), axis=-1)), y_hat - y  # the second one is the derivative of softmax
 
 
 # relu
@@ -82,6 +83,12 @@ class ScratchTextClassifier:
     def update_params(self, lr, dw, db):
         self.weights = [W - lr * grad_w for W, grad_w in zip(self.weights, dw)]
         self.biases = [b - lr * grad_b for b, grad_b in zip(self.biases, db)]
+
+    def load_state(self, path):
+        with open(path,'rb') as rf:
+            params = pkl.load(rf)
+        self.weights = params['weights']
+        self.biases = params['biases']
 
 
 '''

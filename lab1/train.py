@@ -20,7 +20,7 @@ def accuracy(y, y_hat):  # y is gt and y_hat is prediction
 def test_accuracy(feature_extractor, net, test_set, test_label, batch_size):
     gross_acc = 0.
     num_batch = 0
-    for X, y in dataloader(feature_extractor, test_set, test_label, batch_size, shuffle=False):
+    for X, y in dataloader(feature_extractor, test_set, test_label, batch_size):
         num_batch += 1
         X = X.reshape((batch_size, 1, -1))
         y = y.reshape((batch_size, 1, -1))
@@ -102,10 +102,10 @@ def plot_train(epoch):
 
 
 if __name__ == '__main__':
-    lr = 2.5
+    lr = 5.
     num_epochs = 100
     batch_size = 128
-    bow_extractor = BOW(data_path='./proceeded_data/bow_5000.pkl')
+    bow_extractor = BOW(max_features=5000, data_path='./proceeded_data/bow_5000.pkl')
     net = ScratchTextClassifier([len(bow_extractor.vocab), 256, bow_extractor.num_cls])
     train_set, test_set, train_label, test_label = train_test_split(bow_extractor)
     train(bow_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs)

@@ -29,7 +29,7 @@ def test_accuracy(feature_extractor, net, test_set, test_label, batch_size):
     return gross_acc / num_batch
 
 
-def train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr):
+def train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr, l1=None, l2=None):
     gross_loss = 0.
     gross_train_acc = 0.
     num_batch = 0
@@ -39,17 +39,18 @@ def train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr):
         y = y.reshape((batch_size, 1, -1))
         y_hat = net(X)
         loss, dw, db = net.backward(y)
-        net.update_params(lr, dw, db)
+        net.update_params(lr, dw, db, l1=l1, l2=l2)
         gross_loss += loss
         gross_train_acc += (accuracy(y, y_hat))
     train_loss.append(gross_loss / num_batch)
     train_acc.append(gross_train_acc / num_batch)
 
 
-def train(feature_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs):
+def train(feature_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs, l1=None,
+          l2=None, gamma=0.5):
     for epoch in range(num_epochs):
         epochs.append(epoch + 1)
-        train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr)
+        train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr, l1, l2)
         test_acc.append(test_accuracy(feature_extractor, net, test_set, test_label, batch_size))
         print(
             f'Epoch({epoch + 1}/{num_epochs}): '
@@ -57,6 +58,11 @@ def train(feature_extractor, net, train_set, train_label, test_set, test_label, 
             f'train_acc:{round(train_acc[epoch] * 100., 4)} %; '
             f'test_acc:{round(test_acc[epoch] * 100., 4)} %')
         if (epoch + 1) % 10 == 0:
+            if l2 is None:
+                l2 = 0.1
+            else:
+                l2 += 0.01
+            lr *= gamma
             params = dict()
             params['weights'] = net.weights
             params['biases'] = net.biases

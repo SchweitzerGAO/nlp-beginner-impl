@@ -101,6 +101,8 @@ class BOW(FeatureExtractor):
             word_idx = self.voc2idx(word)
             if word_idx != -1 and bag[word_idx] == 0:
                 bag[word_idx] = float(words.count(word))
+        bag += 1.
+        bag /= len(self.vocab)
         return bag
 
 
@@ -183,6 +185,8 @@ class NGram(FeatureExtractor):
             slice_idx = self.voc2idx(sli)
             if slice_idx != -1 and bag[slice_idx] == 0:
                 bag[slice_idx] = float(slices.count(sli))
+        bag += 1.
+        bag /= len(self.vocab)
         return bag
 
 
@@ -223,9 +227,9 @@ def dataloader(feature_extractor, data, labels, batch_size):
 test code
 '''
 if __name__ == '__main__':
-    ngram_3000 = NGram(max_features=3000, n=2, data_path='proceeded_data/ngram_3000.pkl')
-    train_set, test_set, train_label, test_label = train_test_split(ngram_3000)
+    bow_5000 = BOW(data_path='./proceeded_data/bow_5000.pkl')
+    train_set, test_set, train_label, test_label = train_test_split(bow_5000)
     print(len(train_set))
-    for X, y in dataloader(ngram_3000, train_set, train_label, 32):
+    for X, y in dataloader(bow_5000, train_set, train_label, 32):
         print(X.reshape((32, 1, -1)).shape, y[0].reshape(1, -1).shape)
         break

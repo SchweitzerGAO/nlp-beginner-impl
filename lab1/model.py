@@ -16,7 +16,6 @@ def softmax(x):
 
 # cross entropy
 def cross_entropy(y, y_hat):  # y is gt and y_hat is prediction
-
     return np.mean(np.sum(-y * np.log(y_hat+1e-7), axis=-1)), y_hat - y  # the second one is the derivative of softmax
 
 
@@ -81,9 +80,16 @@ class ScratchTextClassifier:
                 delta = (delta @ self.weights[layer_idx].T) * relu_prime(self.P[layer_idx - 1])
         return loss, dw, db
 
-    def update_params(self, lr, dw, db):
-        self.weights = [W - lr * grad_w for W, grad_w in zip(self.weights, dw)]
-        self.biases = [b - lr * grad_b for b, grad_b in zip(self.biases, db)]
+    def update_params(self, lr, dw, db, l1=None, l2=None):
+        if l1 is not None:
+            self.weights = [W - lr * (grad_w + l1 * np.sign(W)) for W, grad_w in zip(self.weights, dw)]
+            self.biases = [b - lr * grad_b for b, grad_b in zip(self.biases, db)]
+        elif l2 is not None:
+            self.weights = [W - lr * (grad_w + l2 * W) for W, grad_w in zip(self.weights, dw)]
+            self.biases = [b - lr * grad_b for b, grad_b in zip(self.biases, db)]
+        else:
+            self.weights = [W - lr * grad_w for W, grad_w in zip(self.weights, dw)]
+            self.biases = [b - lr * grad_b for b, grad_b in zip(self.biases, db)]
 
     def load_state(self, path):
         with open(path, 'rb') as rf:

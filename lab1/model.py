@@ -1,6 +1,7 @@
 import numpy as np
 from preprocess import BOW, train_test_split, dataloader
 import pickle as pkl
+
 '''
 utils
 '''
@@ -85,7 +86,7 @@ class ScratchTextClassifier:
         self.biases = [b - lr * grad_b for b, grad_b in zip(self.biases, db)]
 
     def load_state(self, path):
-        with open(path,'rb') as rf:
+        with open(path, 'rb') as rf:
             params = pkl.load(rf)
         self.weights = params['weights']
         self.biases = params['biases']

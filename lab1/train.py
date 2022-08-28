@@ -56,17 +56,17 @@ def train(feature_extractor, net, train_set, train_label, test_set, test_label, 
             f'loss:{round(train_loss[epoch], 4)}; '
             f'train_acc:{round(train_acc[epoch] * 100., 4)} %; '
             f'test_acc:{round(test_acc[epoch] * 100., 4)} %')
-        if (epoch + 1) % 100 == 0:
+        if (epoch + 1) % 10 == 0:
             params = dict()
             params['weights'] = net.weights
             params['biases'] = net.biases
             file_path = './saved_model'
             if isinstance(feature_extractor, BOW):
                 file_path += f'/bow/{batch_size}_{lr}_{epoch + 1}.pkl'
-            elif isinstance(feature_extractor,NGram):
+            elif isinstance(feature_extractor, NGram):
                 file_path += f'/ngram/{batch_size}_{lr}_{epoch + 1}.pkl'
             with open(file_path, 'wb') as wf:
-                pkl.dump(params,wf)
+                pkl.dump(params, wf)
 
     plot_train(num_epochs)
 
@@ -103,9 +103,9 @@ def plot_train(epoch):
 
 if __name__ == '__main__':
     lr = 2.5
-    num_epochs = 400
-    batch_size = 64
-    bow_extractor = BOW()
-    net = ScratchTextClassifier([len(bow_extractor.vocab),bow_extractor.num_cls])
+    num_epochs = 100
+    batch_size = 128
+    bow_extractor = BOW(data_path='./proceeded_data/bow_5000.pkl')
+    net = ScratchTextClassifier([len(bow_extractor.vocab), 256, bow_extractor.num_cls])
     train_set, test_set, train_label, test_label = train_test_split(bow_extractor)
     train(bow_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs)

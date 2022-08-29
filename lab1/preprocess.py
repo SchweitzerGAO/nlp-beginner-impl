@@ -101,8 +101,6 @@ class BOW(FeatureExtractor):
             word_idx = self.voc2idx(word)
             if word_idx != -1 and bag[word_idx] == 0:
                 bag[word_idx] = float(words.count(word))
-        bag += 1.
-        bag /= len(self.vocab)
         return bag
 
 
@@ -185,8 +183,6 @@ class NGram(FeatureExtractor):
             slice_idx = self.voc2idx(sli)
             if slice_idx != -1 and bag[slice_idx] == 0:
                 bag[slice_idx] = float(slices.count(sli))
-        bag += 1.
-        bag /= len(self.vocab)
         return bag
 
 

@@ -47,7 +47,7 @@ def train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr, 
 
 
 def train(feature_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs, l1=None,
-          l2=None, gamma=0.5):
+          l2=None, gamma=0.8):
     for epoch in range(num_epochs):
         epochs.append(epoch + 1)
         train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr, l1, l2)
@@ -58,10 +58,6 @@ def train(feature_extractor, net, train_set, train_label, test_set, test_label, 
             f'train_acc:{round(train_acc[epoch] * 100., 4)} %; '
             f'test_acc:{round(test_acc[epoch] * 100., 4)} %')
         if (epoch + 1) % 10 == 0:
-            if l2 is None:
-                l2 = 0.1
-            else:
-                l2 += 0.01
             lr *= gamma
             params = dict()
             params['weights'] = net.weights
@@ -109,9 +105,10 @@ def plot_train(epoch):
 
 if __name__ == '__main__':
     lr = 5.
-    num_epochs = 100
+    num_epochs = 50
     batch_size = 128
     bow_extractor = BOW(max_features=5000, data_path='./proceeded_data/bow_5000.pkl')
+    bigram_3000 = NGram(max_features=3000,n=2,data_path='./proceeded_data/ngram_3000.pkl')
     net = ScratchTextClassifier([len(bow_extractor.vocab), 256, bow_extractor.num_cls])
     train_set, test_set, train_label, test_label = train_test_split(bow_extractor)
     train(bow_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs)

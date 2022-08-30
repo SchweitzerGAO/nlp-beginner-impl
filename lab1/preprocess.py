@@ -95,6 +95,7 @@ class BOW(FeatureExtractor):
             self.idx = data['idx']
 
     def generate_feature(self, phrase):
+        phrase = phrase.lower()
         bag = np.array([0.] * len(self.vocab), dtype=np.float32)
         words = phrase.split()
         for word in words:
@@ -175,6 +176,7 @@ class NGram(FeatureExtractor):
             self.idx = data['idx']
 
     def generate_feature(self, phrase):
+        phrase = phrase.lower()
         bag = np.array([0.] * len(self.vocab), dtype=np.float32)
         words = phrase.split(' ')
         slices = [' '.join(words[i:i + self.n])
@@ -199,12 +201,29 @@ def train_test_split(feature_extractor, test_ratio=0.2, shuffle=True):
         np.random.shuffle(concat)
         dataset = concat[:, 0]
         gt = concat[:, 1]
-
     train_set = dataset[:len_train]
     train_label = gt[:len_train]
-    test_set = dataset[len_train + 1:]
-    test_label = gt[len_train + 1:]
+    test_set = dataset[len_train:]
+    test_label = gt[len_train:]
     return list(train_set), list(test_set), list(train_label), list(test_label)
+
+
+def K_fold_split(feature_extractor, k=10, shuffle=True):
+    len_all = len(feature_extractor.corpus)
+    sliced_set = []
+    dataset = feature_extractor.corpus
+    gt = feature_extractor.cls
+    if shuffle:
+        dataset = np.array(list(dataset))
+        gt = [int(label) for label in list(gt)]
+        gt = np.array(gt)
+        concat = np.concatenate((dataset.reshape(-1, 1), gt.reshape(-1, 1)), axis=1)
+        np.random.shuffle(concat)
+        dataset = concat[:, 0]
+        gt = concat[:, 1]
+
+
+
 
 
 def dataloader(feature_extractor, data, labels, batch_size):
@@ -223,9 +242,9 @@ def dataloader(feature_extractor, data, labels, batch_size):
 test code
 '''
 if __name__ == '__main__':
-    bow_5000 = BOW(data_path='./proceeded_data/bow_5000.pkl')
-    train_set, test_set, train_label, test_label = train_test_split(bow_5000)
+    bigram_5000 = NGram(max_features=5000, data_path='./proceeded_data/bigram_5000.pkl', mode='w', n=2)
+    train_set, test_set, train_label, test_label = train_test_split(bigram_5000)
     print(len(train_set))
-    for X, y in dataloader(bow_5000, train_set, train_label, 32):
+    for X, y in dataloader(bigram_5000, train_set, train_label, 32):
         print(X.reshape((32, 1, -1)).shape, y[0].reshape(1, -1).shape)
         break

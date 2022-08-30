@@ -16,7 +16,7 @@ def softmax(x):
 
 # cross entropy
 def cross_entropy(y, y_hat):  # y is gt and y_hat is prediction
-    return np.mean(np.sum(-y * np.log(y_hat+1e-7), axis=-1)), y_hat - y  # the second one is the derivative of softmax
+    return np.mean(np.sum(-y * np.log(y_hat + 1e-7), axis=-1)), y_hat - y  # the second one is the derivative of softmax
 
 
 # relu
@@ -27,10 +27,18 @@ def relu(x):
 # derivative of relu
 def relu_prime(p):
     prime = np.zeros_like(p)
-    prime[p > 0] = 1
+    prime[p >= 0] = 1
     prime[p < 0] = 0
-    prime[p == 0] = 0.5
     return prime
+
+
+# tanh
+def tanh(x):
+    return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+
+
+def tanh_prime(p):
+    return 1 - np.power(tanh(p), 2)
 
 
 '''
@@ -59,9 +67,8 @@ class ScratchTextClassifier:
         for layer_idx, (W, b) in enumerate(zip(self.weights, self.biases)):
             p = x @ W + b
             self.P.append(p)
-            if layer_idx < len(self.weights) - 1:
-                x = relu(p)
-            else:
+            x = relu(p)
+            if layer_idx == len(self.weights) - 1:
                 x = softmax(p)
             self.X.append(x)
         return self.X[-1]

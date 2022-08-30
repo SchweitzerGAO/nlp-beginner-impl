@@ -47,10 +47,11 @@ def train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr, 
 
 
 def train(feature_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs, l1=None,
-          l2=None, gamma=0.8):
+          l2=None, gamma=None):
     for epoch in range(num_epochs):
         epochs.append(epoch + 1)
         train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr, l1, l2)
+        lr = round(lr * gamma, 2) if gamma is not None else lr
         test_acc.append(test_accuracy(feature_extractor, net, test_set, test_label, batch_size))
         print(
             f'Epoch({epoch + 1}/{num_epochs}): '
@@ -58,7 +59,7 @@ def train(feature_extractor, net, train_set, train_label, test_set, test_label, 
             f'train_acc:{round(train_acc[epoch] * 100., 4)} %; '
             f'test_acc:{round(test_acc[epoch] * 100., 4)} %')
         if (epoch + 1) % 10 == 0:
-            lr *= gamma
+            plot_train(epoch + 1)
             params = dict()
             params['weights'] = net.weights
             params['biases'] = net.biases
@@ -69,8 +70,6 @@ def train(feature_extractor, net, train_set, train_label, test_set, test_label, 
                 file_path += f'/ngram/{batch_size}_{lr}_{epoch + 1}.pkl'
             with open(file_path, 'wb') as wf:
                 pkl.dump(params, wf)
-
-    plot_train(num_epochs)
 
 
 def plot_train(epoch):
@@ -93,7 +92,7 @@ def plot_train(epoch):
     # test acc
     plt.subplot(3, 1, 3)
     plt.title('Test Accuracy')
-    plt.plot(epochs, train_loss, c='r', label='test accuracy')
+    plt.plot(epochs, test_acc, c='r', label='test accuracy')
     plt.xlabel('Epochs')
     plt.ylabel('test accuracy')
     plt.legend()
@@ -107,8 +106,8 @@ if __name__ == '__main__':
     lr = 5.
     num_epochs = 50
     batch_size = 128
-    bow_extractor = BOW(max_features=5000, data_path='./proceeded_data/bow_5000.pkl')
-    bigram_3000 = NGram(max_features=3000,n=2,data_path='./proceeded_data/ngram_3000.pkl')
-    net = ScratchTextClassifier([len(bow_extractor.vocab), 256, bow_extractor.num_cls])
-    train_set, test_set, train_label, test_label = train_test_split(bow_extractor)
-    train(bow_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs)
+    # bow_extractor = BOW(max_features=5000, data_path='./proceeded_data/bow_5000.pkl')
+    bigram_5000 = NGram(max_features=5000, n=2, data_path='./proceeded_data/bigram_5000.pkl')
+    net = ScratchTextClassifier([len(bigram_5000.vocab), 256, bigram_5000.num_cls])
+    train_set, test_set, train_label, test_label = train_test_split(bigram_5000)
+    train(bigram_5000, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs, gamma=0.9)

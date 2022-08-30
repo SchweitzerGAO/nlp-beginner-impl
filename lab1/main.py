@@ -13,7 +13,7 @@ def inference(feature_extractor, net, phrase):
 if __name__ == '__main__':
     bow_extractor = BOW(data_path='./proceeded_data/bow_5000.pkl')
     # bigram_3000 = NGram(max_features=3000, n=2, data_path='./proceeded_data/ngram_3000.pkl')
-    net = ScratchTextClassifier([len(bow_extractor.vocab), 256, bow_extractor.num_cls])
+    net = ScratchTextClassifier([len(bow_extractor.vocab), 32, bow_extractor.num_cls])
     net.load_state('./saved_model/bow/128_2.5_10.pkl')
     df = pd.read_csv('./data/test.tsv', sep='\t')
     phrases = list(df['Phrase'])

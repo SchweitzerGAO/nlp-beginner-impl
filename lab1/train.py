@@ -108,6 +108,6 @@ if __name__ == '__main__':
     batch_size = 128
     # bow_extractor = BOW(max_features=5000, data_path='./proceeded_data/bow_5000.pkl')
     bigram_5000 = NGram(max_features=5000, n=2, data_path='./proceeded_data/bigram_5000.pkl')
-    net = ScratchTextClassifier([len(bigram_5000.vocab), 256, bigram_5000.num_cls])
+    net = ScratchTextClassifier([len(bigram_5000.vocab), 32, bigram_5000.num_cls])
     train_set, test_set, train_label, test_label = train_test_split(bigram_5000)
     train(bigram_5000, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs, gamma=0.9)

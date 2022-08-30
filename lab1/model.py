@@ -67,8 +67,9 @@ class ScratchTextClassifier:
         for layer_idx, (W, b) in enumerate(zip(self.weights, self.biases)):
             p = x @ W + b
             self.P.append(p)
-            x = relu(p)
-            if layer_idx == len(self.weights) - 1:
+            if layer_idx < len(self.weights) - 1:
+                x = relu(p)
+            else:
                 x = softmax(p)
             self.X.append(x)
         return self.X[-1]

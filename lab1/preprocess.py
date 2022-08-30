@@ -221,6 +221,7 @@ def K_fold_split(feature_extractor, k=10, shuffle=True):
         np.random.shuffle(concat)
         dataset = concat[:, 0]
         gt = concat[:, 1]
+    slice_len = len_all // k
 
 
 

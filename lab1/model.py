@@ -16,7 +16,7 @@ def softmax(x):
 
 # cross entropy
 def cross_entropy(y, y_hat):  # y is gt and y_hat is prediction
-    return np.mean(np.sum(-y * np.log(y_hat + 1e-7), axis=-1)), y_hat - y  # the second one is the derivative of softmax
+    return np.mean(np.sum(-y * np.log(y_hat), axis=-1)), y_hat - y  # the second one is the derivative of softmax
 
 
 # relu

@@ -49,7 +49,7 @@ class BOW(FeatureExtractor):
             for phrase in list(self.corpus):
                 phrase = phrase.lower()
                 words = phrase.split()
-                vocab.update(word for word in words if word.isalpha())
+                vocab.update(word for word in words)
             self.vocab = list(vocab)
             for i, voc in enumerate(self.vocab):
                 self.idx[voc] = i
@@ -72,14 +72,13 @@ class BOW(FeatureExtractor):
                 phrase = phrase.lower()
                 words = phrase.split(' ')
                 for word in words:
-                    if word.isalpha():
-                        cnt = word_count.get(word, None)
-                        if cnt is None:
-                            word_count[word] = words.count(word)
-                        else:
-                            word_count[word] += words.count(word)
+                    cnt = word_count.get(word, None)
+                    if cnt is None:
+                        word_count[word] = words.count(word)
+                    else:
+                        word_count[word] += words.count(word)
             word_count = sorted(word_count.items(), key=lambda x: x[1], reverse=True)
-            self.vocab = [tpl[0] for tpl in word_count[51:51 + max_features]]  # remove the stop words
+            self.vocab = [tpl[0] for tpl in word_count[:max_features]]  # remove the stop words
             for i, voc in enumerate(self.vocab):
                 self.idx[voc] = i
             # save data to .pkl file
@@ -94,7 +93,7 @@ class BOW(FeatureExtractor):
             self.vocab = data['vocab']
             self.idx = data['idx']
 
-    def generate_feature(self, phrase):
+    def generate_feature(self, phrase, lamb=None):
         phrase = phrase.lower()
         bag = np.array([0.] * len(self.vocab), dtype=np.float32)
         words = phrase.split()
@@ -102,6 +101,8 @@ class BOW(FeatureExtractor):
             word_idx = self.voc2idx(word)
             if word_idx != -1 and bag[word_idx] == 0:
                 bag[word_idx] = float(words.count(word))
+        if lamb is not None:
+            bag += lamb
         return bag
 
 
@@ -126,9 +127,7 @@ class NGram(FeatureExtractor):
                 phrase = phrase.lower()
                 words = phrase.split(' ')
                 slices = [' '.join(words[i:i + self.n])
-                          for i in range(len(words) + 1 - self.n)
-                          if all(s.isalpha()
-                                 for s in words[i:i + self.n])]
+                          for i in range(len(words) + 1 - self.n)]
                 vocab.update(slices)
             self.vocab = list(vocab)
             for i, voc in enumerate(self.vocab):
@@ -152,9 +151,7 @@ class NGram(FeatureExtractor):
                 phrase = phrase.lower()
                 words = phrase.split(' ')
                 slices = [' '.join(words[i:i + self.n])
-                          for i in range(len(words) + 1 - self.n)
-                          if all(s.isalpha()
-                                 for s in words[i:i + self.n])]
+                          for i in range(len(words) + 1 - self.n)]
                 for sli in slices:
                     cnt = sli_count.get(sli, None)
                     if cnt is None:
@@ -162,7 +159,7 @@ class NGram(FeatureExtractor):
                     else:
                         sli_count[sli] += slices.count(sli)
             sli_count = sorted(sli_count.items(), key=lambda x: x[1], reverse=True)
-            self.vocab = [tpl[0] for tpl in sli_count[51:max_features + 51]]
+            self.vocab = [tpl[0] for tpl in sli_count[:max_features]]
             # save data to .pkl file
             data = dict()
             data['vocab'] = self.vocab
@@ -210,7 +207,8 @@ def train_test_split(feature_extractor, test_ratio=0.2, shuffle=True):
 
 def K_fold_split(feature_extractor, k=10, shuffle=True):
     len_all = len(feature_extractor.corpus)
-    sliced_set = []
+    sliced_data = []
+    sliced_label = []
     dataset = feature_extractor.corpus
     gt = feature_extractor.cls
     if shuffle:
@@ -222,9 +220,12 @@ def K_fold_split(feature_extractor, k=10, shuffle=True):
         dataset = concat[:, 0]
         gt = concat[:, 1]
     slice_len = len_all // k
-
-
-
+    for i in range(k):
+        start = i * slice_len
+        end = (i + 1) * slice_len
+        sliced_data.append(dataset[start:end])
+        sliced_label.append(gt[start:end])
+    return sliced_data, sliced_label
 
 
 def dataloader(feature_extractor, data, labels, batch_size):
@@ -232,7 +233,8 @@ def dataloader(feature_extractor, data, labels, batch_size):
     num_batch = len_train // batch_size
     for i in range(0, num_batch * batch_size, batch_size):
         X = np.array(
-            [feature_extractor.generate_feature(phrase) for phrase in data[i:i + batch_size]], dtype=np.float64)
+            [feature_extractor.generate_feature(phrase, lamb=0.01) for phrase in data[i:i + batch_size]],
+            dtype=np.float64)
         label = np.array(labels[i:i + batch_size])
         y = list(map(lambda x: int(x) - 1, label))
         y = np.eye(feature_extractor.num_cls, dtype=np.float64)[y]
@@ -243,9 +245,10 @@ def dataloader(feature_extractor, data, labels, batch_size):
 test code
 '''
 if __name__ == '__main__':
-    bigram_5000 = NGram(max_features=5000, data_path='./proceeded_data/bigram_5000.pkl', mode='w', n=2)
-    train_set, test_set, train_label, test_label = train_test_split(bigram_5000)
+    bow_10000 = BOW(data_path='./proceeded_data/bow.pkl', mode='w')
+    # bigram_5000 = NGram(max_features=5000, data_path='./proceeded_data/bigram_5000.pkl', mode='w', n=2)
+    train_set, test_set, train_label, test_label = train_test_split(bow_10000)
     print(len(train_set))
-    for X, y in dataloader(bigram_5000, train_set, train_label, 32):
+    for X, y in dataloader(bow_10000, train_set, train_label, 32):
         print(X.reshape((32, 1, -1)).shape, y[0].reshape(1, -1).shape)
         break

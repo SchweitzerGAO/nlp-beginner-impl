@@ -3,7 +3,7 @@ import pickle as pkl
 from matplotlib import pyplot as plt
 
 from model import ScratchTextClassifier
-from preprocess import BOW, NGram, train_test_split, dataloader
+from preprocess import BOW, NGram, train_test_split, K_fold_split, dataloader
 
 train_loss = []
 train_acc = []
@@ -46,12 +46,27 @@ def train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr, 
     train_acc.append(gross_train_acc / num_batch)
 
 
-def train(feature_extractor, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs, l1=None,
+def train(feature_extractor, net, batch_size, lr, num_epochs, k=None, l1=None,
           l2=None, gamma=None):
+    all_data = []
+    all_label = []
+    if k is not None:
+        all_data, all_label = K_fold_split(feature_extractor, k=k)
     for epoch in range(num_epochs):
+        if len(all_data) != 0:
+            temp_data = all_data.copy()
+            temp_label = all_label.copy()
+            test_set = temp_data[epoch % k]
+            test_label = temp_label[epoch % k]
+            temp_data.pop(epoch % k)
+            temp_label.pop(epoch % k)
+            train_set = [s[i] for s in temp_data for i in range(len(s))]
+            train_label = [s[i] for s in temp_label for i in range(len(s))]
+        else:
+            train_set, test_set, train_label, test_label = train_test_split(feature_extractor)
+
         epochs.append(epoch + 1)
         train_epoch(feature_extractor, net, train_set, train_label, batch_size, lr, l1, l2)
-        lr = round(lr * gamma, 2) if gamma is not None else lr
         test_acc.append(test_accuracy(feature_extractor, net, test_set, test_label, batch_size))
         print(
             f'Epoch({epoch + 1}/{num_epochs}): '
@@ -59,7 +74,6 @@ def train(feature_extractor, net, train_set, train_label, test_set, test_label, 
             f'train_acc:{round(train_acc[epoch] * 100., 4)} %; '
             f'test_acc:{round(test_acc[epoch] * 100., 4)} %')
         if (epoch + 1) % 10 == 0:
-            plot_train(epoch + 1)
             params = dict()
             params['weights'] = net.weights
             params['biases'] = net.biases
@@ -70,6 +84,8 @@ def train(feature_extractor, net, train_set, train_label, test_set, test_label, 
                 file_path += f'/ngram/{batch_size}_{lr}_{epoch + 1}.pkl'
             with open(file_path, 'wb') as wf:
                 pkl.dump(params, wf)
+            lr = round(lr * gamma, 2) if gamma is not None else lr
+    plot_train(num_epochs + 1)
 
 
 def plot_train(epoch):
@@ -103,11 +119,9 @@ def plot_train(epoch):
 
 
 if __name__ == '__main__':
-    lr = 5.
+    lr = 2.5
     num_epochs = 50
-    batch_size = 128
-    # bow_extractor = BOW(max_features=5000, data_path='./proceeded_data/bow_5000.pkl')
-    bigram_5000 = NGram(max_features=5000, n=2, data_path='./proceeded_data/bigram_5000.pkl')
-    net = ScratchTextClassifier([len(bigram_5000.vocab), 32, bigram_5000.num_cls])
-    train_set, test_set, train_label, test_label = train_test_split(bigram_5000)
-    train(bigram_5000, net, train_set, train_label, test_set, test_label, batch_size, lr, num_epochs, gamma=0.9)
+    batch_size = 256
+    bow_extractor = BOW(data_path='./proceeded_data/bow.pkl')
+    net = ScratchTextClassifier([len(bow_extractor.vocab), bow_extractor.num_cls])
+    train(bow_extractor, net, batch_size, lr, num_epochs, gamma=0.5, k=10)

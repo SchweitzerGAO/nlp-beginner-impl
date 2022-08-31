@@ -5,16 +5,16 @@ from preprocess import BOW,NGram
 
 
 def inference(feature_extractor, net, phrase):
-    feature = feature_extractor.generate_feature(phrase)
+    feature = feature_extractor.generate_feature(phrase,lamb=1)
     y_hat = net(feature)
     return y_hat.argmax()
 
 
 if __name__ == '__main__':
-    bow_extractor = BOW(data_path='./proceeded_data/bow_5000.pkl')
+    bow_extractor = BOW(data_path='./proceeded_data/bow.pkl')
     # bigram_3000 = NGram(max_features=3000, n=2, data_path='./proceeded_data/ngram_3000.pkl')
-    net = ScratchTextClassifier([len(bow_extractor.vocab), 32, bow_extractor.num_cls])
-    net.load_state('./saved_model/bow/128_2.5_10.pkl')
+    net = ScratchTextClassifier([len(bow_extractor.vocab), bow_extractor.num_cls])
+    net.load_state('./saved_model/bow/256_2.5_10.pkl')
     df = pd.read_csv('./data/test.tsv', sep='\t')
     phrases = list(df['Phrase'])
     phrase_id = list(df['PhraseId'])

@@ -16,7 +16,23 @@ def softmax(x):
 
 # cross entropy
 def cross_entropy(y, y_hat):  # y is gt and y_hat is prediction
-    return np.mean(np.sum(-y * np.log(y_hat), axis=-1)), y_hat - y  # the second one is the derivative of softmax
+    return np.mean(
+        np.sum(-y * np.log(y_hat + 1e-10), axis=-1)), y_hat - y  # the second one is the derivative of softmax
+
+
+# overflow-proof softmax
+def overflow_proof_softmax(x):
+    x_max = np.max(x)
+    exp_x = np.exp(x - x_max)
+    sum_exp_x = np.sum(exp_x)
+    return exp_x / sum_exp_x
+
+
+def overflow_proof_cross_entropy(y, y_hat):
+    y_hat_max = np.max(y_hat)
+    y_hat_log = y_hat - y_hat_max - np.log(np.sum(np.exp(y_hat - y_hat_max)))
+    return np.mean(
+        np.sum(-y * y_hat_log, axis=-1)), y_hat - y
 
 
 # relu
@@ -32,22 +48,13 @@ def relu_prime(p):
     return prime
 
 
-# tanh
-def tanh(x):
-    return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
-
-
-def tanh_prime(p):
-    return 1 - np.power(tanh(p), 2)
-
-
 '''
 an MLP classifier
 '''
 
 
 class ScratchTextClassifier:
-    def __init__(self, net_arch):
+    def __init__(self, net_arch, overflow_proof=False):
         assert net_arch is not None
         self.net_arch = net_arch
         self.weights = [np.random.randn(in_channel, out_channel)
@@ -56,6 +63,12 @@ class ScratchTextClassifier:
         self.biases = [np.zeros((1, channel)) for channel in self.net_arch[1:]]
         self.P = []
         self.X = []
+        if not overflow_proof:
+            self.softmax = softmax
+            self.cross_entropy = cross_entropy
+        else:
+            self.softmax = overflow_proof_softmax
+            self.cross_entropy = overflow_proof_cross_entropy
 
     def __call__(self, x):
         return self.forward(x)
@@ -70,14 +83,14 @@ class ScratchTextClassifier:
             if layer_idx < len(self.weights) - 1:
                 x = relu(p)
             else:
-                x = softmax(p)
+                x = self.softmax(p)
             self.X.append(x)
         return self.X[-1]
 
     def backward(self, y):
         dw = [np.zeros(w.shape) for w in self.weights]
         db = [np.zeros(b.shape) for b in self.biases]
-        loss, delta = cross_entropy(y, self.X[-1])
+        loss, delta = self.cross_entropy(y, self.X[-1])
         batch_size = len(y)
         for layer_idx in range(len(self.weights) - 1, -1, -1):
             x = self.X[layer_idx]

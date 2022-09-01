@@ -123,5 +123,5 @@ if __name__ == '__main__':
     num_epochs = 50
     batch_size = 256
     bow_extractor = BOW(data_path='./proceeded_data/bow.pkl')
-    net = ScratchTextClassifier([len(bow_extractor.vocab), bow_extractor.num_cls])
+    net = ScratchTextClassifier([len(bow_extractor.vocab), bow_extractor.num_cls],overflow_proof=True)
     train(bow_extractor, net, batch_size, lr, num_epochs, gamma=0.5, k=10)

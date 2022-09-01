@@ -78,7 +78,7 @@ class BOW(FeatureExtractor):
                     else:
                         word_count[word] += words.count(word)
             word_count = sorted(word_count.items(), key=lambda x: x[1], reverse=True)
-            self.vocab = [tpl[0] for tpl in word_count[:max_features]]  # remove the stop words
+            self.vocab = [tpl[0] for tpl in word_count[101:101 + max_features]]  # remove the stop words
             for i, voc in enumerate(self.vocab):
                 self.idx[voc] = i
             # save data to .pkl file
@@ -185,6 +185,22 @@ class NGram(FeatureExtractor):
         return bag
 
 
+'''
+TF-IDF
+'''
+
+
+class TF_IDF(FeatureExtractor):
+    def generate_data(self, mode, data_path):
+        pass
+
+    def choose_feature(self, max_features, mode, data_path):
+        pass
+
+    def generate_feature(self, phrase):
+        pass
+
+
 def train_test_split(feature_extractor, test_ratio=0.2, shuffle=True):
     len_all = len(feature_extractor.corpus)
     len_train = int(len_all * (1 - test_ratio))
@@ -233,7 +249,7 @@ def dataloader(feature_extractor, data, labels, batch_size):
     num_batch = len_train // batch_size
     for i in range(0, num_batch * batch_size, batch_size):
         X = np.array(
-            [feature_extractor.generate_feature(phrase, lamb=0.01) for phrase in data[i:i + batch_size]],
+            [feature_extractor.generate_feature(phrase) for phrase in data[i:i + batch_size]],
             dtype=np.float64)
         label = np.array(labels[i:i + batch_size])
         y = list(map(lambda x: int(x) - 1, label))
@@ -245,7 +261,7 @@ def dataloader(feature_extractor, data, labels, batch_size):
 test code
 '''
 if __name__ == '__main__':
-    bow_10000 = BOW(data_path='./proceeded_data/bow.pkl', mode='w')
+    bow_10000 = BOW(data_path='./proceeded_data/bow_3000.pkl', mode='w', max_features=3000)
     # bigram_5000 = NGram(max_features=5000, data_path='./proceeded_data/bigram_5000.pkl', mode='w', n=2)
     train_set, test_set, train_label, test_label = train_test_split(bow_10000)
     print(len(train_set))

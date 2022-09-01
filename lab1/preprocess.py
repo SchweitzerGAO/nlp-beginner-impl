@@ -17,6 +17,9 @@ class FeatureExtractor:
         self.num_cls = len(set(self.cls))
         self.idx = dict()  # vocabulary-index
 
+    def count_vocab(self):
+        raise NotImplementedError
+
     def generate_data(self, mode, data_path):
         raise NotImplementedError
 
@@ -43,6 +46,20 @@ class BOW(FeatureExtractor):
         else:
             self.choose_feature(self.max_features, mode, data_path)
 
+    def count_vocab(self):
+        word_count = dict()
+        for phrase in list(self.corpus):
+            phrase = phrase.lower()
+            words = phrase.split(' ')
+            for word in words:
+                cnt = word_count.get(word, None)
+                if cnt is None:
+                    word_count[word] = words.count(word)
+                else:
+                    word_count[word] += words.count(word)
+        word_count = sorted(word_count.items(), key=lambda x: x[1], reverse=True)
+        return word_count
+
     def generate_data(self, mode, data_path):
         if mode == 'w':
             vocab = set()
@@ -67,17 +84,7 @@ class BOW(FeatureExtractor):
 
     def choose_feature(self, max_features, mode, data_path):
         if mode == 'w':
-            word_count = dict()
-            for phrase in list(self.corpus):
-                phrase = phrase.lower()
-                words = phrase.split(' ')
-                for word in words:
-                    cnt = word_count.get(word, None)
-                    if cnt is None:
-                        word_count[word] = words.count(word)
-                    else:
-                        word_count[word] += words.count(word)
-            word_count = sorted(word_count.items(), key=lambda x: x[1], reverse=True)
+            word_count = self.count_vocab()
             self.vocab = [tpl[0] for tpl in word_count[101:101 + max_features]]  # remove the stop words
             for i, voc in enumerate(self.vocab):
                 self.idx[voc] = i
@@ -107,7 +114,7 @@ class BOW(FeatureExtractor):
 
 
 '''
-N-gram
+N-Gram
 '''
 
 
@@ -119,6 +126,22 @@ class NGram(FeatureExtractor):
             self.generate_data(mode, data_path)
         else:
             self.choose_feature(self.max_features, mode, data_path)
+
+    def count_vocab(self):
+        sli_count = dict()
+        for phrase in list(self.corpus):
+            phrase = phrase.lower()
+            words = phrase.split(' ')
+            slices = [' '.join(words[i:i + self.n])
+                      for i in range(len(words) + 1 - self.n)]
+            for sli in slices:
+                cnt = sli_count.get(sli, None)
+                if cnt is None:
+                    sli_count[sli] = slices.count(sli)
+                else:
+                    sli_count[sli] += slices.count(sli)
+        sli_count = sorted(sli_count.items(), key=lambda x: x[1], reverse=True)
+        return sli_count
 
     def generate_data(self, mode, data_path):
         if mode == 'w':
@@ -146,19 +169,7 @@ class NGram(FeatureExtractor):
 
     def choose_feature(self, max_features, mode, data_path):
         if mode == 'w':
-            sli_count = dict()
-            for phrase in list(self.corpus):
-                phrase = phrase.lower()
-                words = phrase.split(' ')
-                slices = [' '.join(words[i:i + self.n])
-                          for i in range(len(words) + 1 - self.n)]
-                for sli in slices:
-                    cnt = sli_count.get(sli, None)
-                    if cnt is None:
-                        sli_count[sli] = slices.count(sli)
-                    else:
-                        sli_count[sli] += slices.count(sli)
-            sli_count = sorted(sli_count.items(), key=lambda x: x[1], reverse=True)
+            sli_count = self.count_vocab()
             self.vocab = [tpl[0] for tpl in sli_count[:max_features]]
             # save data to .pkl file
             data = dict()
@@ -191,8 +202,30 @@ TF-IDF
 
 
 class TF_IDF(FeatureExtractor):
+    def __init__(self,max_features=None, data_path='./proceeded_data/tf_idf.pkl', mode='r'):
+        super().__init__(max_features=max_features)
+        if self.max_features is None:
+            self.generate_data(mode, data_path)
+        else:
+            self.choose_feature(self.max_features, mode, data_path)
+
+    def count_vocab(self):
+        word_count = dict()
+        for phrase in list(self.corpus):
+            phrase = phrase.lower()
+            words = phrase.split(' ')
+            for word in words:
+                cnt = word_count.get(word, None)
+                if cnt is None:
+                    word_count[word] = words.count(word)
+                else:
+                    word_count[word] += words.count(word)
+        word_count = sorted(word_count.items(), key=lambda x: x[1], reverse=True)
+        return word_count
+
     def generate_data(self, mode, data_path):
         pass
+
 
     def choose_feature(self, max_features, mode, data_path):
         pass

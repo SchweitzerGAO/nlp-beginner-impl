@@ -3,7 +3,7 @@ import pickle as pkl
 from matplotlib import pyplot as plt
 
 from model import ScratchTextClassifier
-from preprocess import BOW, NGram, train_test_split, K_fold_split, dataloader
+from preprocess import BOW, NGram, TF_IDF, train_test_split, K_fold_split, dataloader
 
 train_loss = []
 train_acc = []
@@ -78,7 +78,9 @@ def train(feature_extractor, net, batch_size, lr, num_epochs, k=None, l1=None,
             params['weights'] = net.weights
             params['biases'] = net.biases
             file_path = './saved_model'
-            if isinstance(feature_extractor, BOW):
+            if isinstance(feature_extractor,TF_IDF):
+                file_path += f'/tf_idf/{batch_size}_{lr}_{epoch + 1}.pkl'
+            elif isinstance(feature_extractor, BOW):
                 file_path += f'/bow/{batch_size}_{lr}_{epoch + 1}.pkl'
             elif isinstance(feature_extractor, NGram):
                 file_path += f'/ngram/{batch_size}_{lr}_{epoch + 1}.pkl'
@@ -122,6 +124,6 @@ if __name__ == '__main__':
     lr = 2.5
     num_epochs = 50
     batch_size = 256
-    bow_extractor = BOW(data_path='./proceeded_data/bow.pkl')
+    bow_extractor = TF_IDF(data_path='./proceeded_data/bow.pkl')
     net = ScratchTextClassifier([len(bow_extractor.vocab), bow_extractor.num_cls],overflow_proof=True)
     train(bow_extractor, net, batch_size, lr, num_epochs, gamma=0.5, k=10)

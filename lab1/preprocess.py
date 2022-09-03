@@ -201,37 +201,39 @@ TF-IDF
 '''
 
 
-class TF_IDF(FeatureExtractor):
-    def __init__(self,max_features=None, data_path='./proceeded_data/tf_idf.pkl', mode='r'):
+class TF_IDF(BOW):
+    def __init__(self, max_features=None, data_path='./proceeded_data/tf_idf.pkl', mode='r'):
         super().__init__(max_features=max_features)
         if self.max_features is None:
             self.generate_data(mode, data_path)
         else:
             self.choose_feature(self.max_features, mode, data_path)
 
-    def count_vocab(self):
-        word_count = dict()
-        for phrase in list(self.corpus):
-            phrase = phrase.lower()
-            words = phrase.split(' ')
-            for word in words:
-                cnt = word_count.get(word, None)
-                if cnt is None:
-                    word_count[word] = words.count(word)
-                else:
-                    word_count[word] += words.count(word)
-        word_count = sorted(word_count.items(), key=lambda x: x[1], reverse=True)
-        return word_count
+    def _tf(self, word, phrase):
+        words = phrase.split(' ')
+        tf = words.count(word) / len(words)
+        return tf
 
-    def generate_data(self, mode, data_path):
-        pass
+    def _idf(self, word):
+        doc_appear = 0
+        for sentence in list(self.corpus):
+            if sentence.count(word) != 0:
+                doc_appear += 1
+        idf = np.log(len(self.corpus) / (doc_appear + 1))
+        return idf
 
+    def tf_idf(self, word, sentence):
+        return self._tf(word, sentence) * self._idf(word)
 
-    def choose_feature(self, max_features, mode, data_path):
-        pass
-
-    def generate_feature(self, phrase):
-        pass
+    def generate_feature(self, phrase, lamb=None):
+        phrase = phrase.lower()
+        bag = np.array([0.] * len(self.vocab), dtype=np.float32)
+        words = phrase.split(' ')
+        for word in words:
+            word_idx = self.voc2idx(word)
+            if word_idx != -1 and bag[word_idx] == 0:
+                bag[word_idx] = self.tf_idf(word, phrase)
+        return bag
 
 
 def train_test_split(feature_extractor, test_ratio=0.2, shuffle=True):
@@ -294,10 +296,10 @@ def dataloader(feature_extractor, data, labels, batch_size):
 test code
 '''
 if __name__ == '__main__':
-    bow_10000 = BOW(data_path='./proceeded_data/bow_3000.pkl', mode='w', max_features=3000)
+    tf_idf = TF_IDF(data_path='./proceeded_data/bow.pkl')
     # bigram_5000 = NGram(max_features=5000, data_path='./proceeded_data/bigram_5000.pkl', mode='w', n=2)
-    train_set, test_set, train_label, test_label = train_test_split(bow_10000)
+    train_set, test_set, train_label, test_label = train_test_split(tf_idf)
     print(len(train_set))
-    for X, y in dataloader(bow_10000, train_set, train_label, 32):
+    for X, y in dataloader(tf_idf, train_set, train_label, 32):
         print(X.reshape((32, 1, -1)).shape, y[0].reshape(1, -1).shape)
         break

@@ -201,9 +201,10 @@ TF-IDF
 '''
 
 
-class TF_IDF(BOW):
+class TF_IDF(FeatureExtractor):
     def __init__(self, max_features=None, data_path='./proceeded_data/tf_idf.pkl', mode='r'):
         super().__init__(max_features=max_features)
+        self.idf = dict()
         if self.max_features is None:
             self.generate_data(mode, data_path)
         else:
@@ -223,9 +224,41 @@ class TF_IDF(BOW):
         return idf
 
     def tf_idf(self, word, sentence):
-        return self._tf(word, sentence) * self._idf(word)
+        return self._tf(word, sentence) * self.idf[word]
 
-    def generate_feature(self, phrase, lamb=None):
+    def count_vocab(self):
+        pass
+
+    def generate_data(self, mode, data_path):
+        if mode == 'w':
+            vocab = set()
+            for phrase in list(self.corpus):
+                phrase = phrase.lower()
+                words = phrase.split()
+                vocab.update(word for word in words)
+            self.vocab = list(vocab)
+            for i, voc in enumerate(self.vocab):
+                self.idx[voc] = i
+            for word in self.vocab:
+                self.idf[word] = self._idf(word)
+            # save data to .pkl file
+            data = dict()
+            data['vocab'] = self.vocab
+            data['idx'] = self.idx
+            data['idf'] = self.idf
+            with open(data_path, 'wb') as wf:
+                pkl.dump(data, wf)
+        elif mode == 'r':
+            with open(data_path, 'rb') as rf:
+                data = pkl.load(rf)
+            self.vocab = data['vocab']
+            self.idx = data['idx']
+            self.idf = data['idf']
+
+    def choose_feature(self, max_features, mode, data_path):
+        pass
+
+    def generate_feature(self, phrase):
         phrase = phrase.lower()
         bag = np.array([0.] * len(self.vocab), dtype=np.float32)
         words = phrase.split(' ')
@@ -296,7 +329,7 @@ def dataloader(feature_extractor, data, labels, batch_size):
 test code
 '''
 if __name__ == '__main__':
-    tf_idf = TF_IDF(data_path='./proceeded_data/bow.pkl')
+    tf_idf = TF_IDF(data_path='./proceeded_data/tf_idf.pkl')
     # bigram_5000 = NGram(max_features=5000, data_path='./proceeded_data/bigram_5000.pkl', mode='w', n=2)
     train_set, test_set, train_label, test_label = train_test_split(tf_idf)
     print(len(train_set))

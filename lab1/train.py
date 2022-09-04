@@ -78,7 +78,7 @@ def train(feature_extractor, net, batch_size, lr, num_epochs, k=None, l1=None,
             params['weights'] = net.weights
             params['biases'] = net.biases
             file_path = './saved_model'
-            if isinstance(feature_extractor,TF_IDF):
+            if isinstance(feature_extractor, TF_IDF):
                 file_path += f'/tf_idf/{batch_size}_{lr}_{epoch + 1}.pkl'
             elif isinstance(feature_extractor, BOW):
                 file_path += f'/bow/{batch_size}_{lr}_{epoch + 1}.pkl'
@@ -121,9 +121,9 @@ def plot_train(epoch):
 
 
 if __name__ == '__main__':
-    lr = 2.5
+    lr = 0.5
     num_epochs = 50
     batch_size = 256
-    bow_extractor = TF_IDF(data_path='./proceeded_data/bow.pkl')
-    net = ScratchTextClassifier([len(bow_extractor.vocab), bow_extractor.num_cls],overflow_proof=True)
-    train(bow_extractor, net, batch_size, lr, num_epochs, gamma=0.5, k=10)
+    bow_extractor = TF_IDF(data_path='./proceeded_data/tf_idf.pkl')
+    net = ScratchTextClassifier([len(bow_extractor.vocab), bow_extractor.num_cls], overflow_proof=True)
+    train(bow_extractor, net, batch_size, lr, num_epochs, gamma=0.8)

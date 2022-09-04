@@ -121,9 +121,9 @@ def plot_train(epoch):
 
 
 if __name__ == '__main__':
-    lr = 0.5
+    lr = 3
     num_epochs = 50
     batch_size = 256
     bow_extractor = TF_IDF(data_path='./proceeded_data/tf_idf.pkl')
-    net = ScratchTextClassifier([len(bow_extractor.vocab), bow_extractor.num_cls], overflow_proof=True)
-    train(bow_extractor, net, batch_size, lr, num_epochs, gamma=0.8)
+    net = ScratchTextClassifier([len(bow_extractor.vocab), bow_extractor.num_cls], overflow_proof=False)
+    train(bow_extractor, net, batch_size, lr, num_epochs, gamma=0.5)

@@ -3,7 +3,7 @@ import numpy as np
 import pickle as pkl
 
 '''
-Base class
+Abstract class
 '''
 
 
@@ -329,10 +329,10 @@ def dataloader(feature_extractor, data, labels, batch_size):
 test code
 '''
 if __name__ == '__main__':
-    tf_idf = TF_IDF(data_path='./proceeded_data/tf_idf.pkl')
-    # bigram_5000 = NGram(max_features=5000, data_path='./proceeded_data/bigram_5000.pkl', mode='w', n=2)
-    train_set, test_set, train_label, test_label = train_test_split(tf_idf)
+    # tf_idf = TF_IDF(data_path='./proceeded_data/tf_idf.pkl')
+    bigram_5000 = NGram(max_features=3000, data_path='./proceeded_data/bigram_5000.pkl', mode='w', n=2)
+    train_set, test_set, train_label, test_label = train_test_split(bigram_5000)
     print(len(train_set))
-    for X, y in dataloader(tf_idf, train_set, train_label, 32):
+    for X, y in dataloader(bigram_5000, train_set, train_label, 32):
         print(X.reshape((32, 1, -1)).shape, y[0].reshape(1, -1).shape)
         break

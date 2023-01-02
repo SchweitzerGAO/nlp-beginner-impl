@@ -1,6 +1,7 @@
 import numpy as np
 from preprocess import BOW, train_test_split, dataloader
 import pickle as pkl
+import random
 
 '''
 utils
@@ -17,7 +18,8 @@ def softmax(x):
 # cross entropy
 def cross_entropy(y, y_hat):  # y is gt and y_hat is prediction
     return np.mean(
-        np.sum(-y * np.log(y_hat + 1e-10), axis=-1)), y_hat - y  # the second one is the derivative of softmax
+        np.sum(-y * np.log(y_hat + random.uniform(0, 1e-6)),
+               axis=-1)), y_hat - y  # the second one is the derivative of softmax
 
 
 # overflow-proof softmax

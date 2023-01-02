@@ -73,7 +73,8 @@ def train(feature_extractor, net, batch_size, lr, num_epochs, k=None, l1=None,
             f'loss:{round(train_loss[epoch], 4)}; '
             f'train_acc:{round(train_acc[epoch] * 100., 4)} %; '
             f'test_acc:{round(test_acc[epoch] * 100., 4)} %')
-        if (epoch + 1) % 10 == 0:
+
+        if True:
             params = dict()
             params['weights'] = net.weights
             params['biases'] = net.biases
@@ -121,9 +122,9 @@ def plot_train(epoch):
 
 
 if __name__ == '__main__':
-    lr = 3
+    lr = 3.5
     num_epochs = 50
-    batch_size = 256
-    bow_extractor = TF_IDF(data_path='./proceeded_data/tf_idf.pkl')
-    net = ScratchTextClassifier([len(bow_extractor.vocab), bow_extractor.num_cls], overflow_proof=False)
-    train(bow_extractor, net, batch_size, lr, num_epochs, gamma=0.5)
+    batch_size = 128
+    bigram_extractor = TF_IDF(data_path='./proceeded_data/tf_idf.pkl')
+    net = ScratchTextClassifier([len(bigram_extractor.vocab), bigram_extractor.num_cls], overflow_proof=False)
+    train(bigram_extractor, net, batch_size, lr, num_epochs, None)

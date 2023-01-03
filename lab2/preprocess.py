@@ -37,6 +37,4 @@ def word_embed_glove():
 
 
 if __name__ == '__main__':
-    with open('./word_vectors/glove_6B_100d.pkl', 'rb') as f:
-        res = pkl.load(f)
-        pass
+    word_embed_random()

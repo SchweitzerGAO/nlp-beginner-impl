@@ -1,19 +1,19 @@
-import pandas as pd
 import pickle as pkl
+
+import pandas as pd
 import torch
+import torch.utils.data.dataset as Dataset
 from torch import nn
-
-
-def read_dataset(file_path):
-    df = pd.read_csv(file_path, sep='\t')
-    return df['Phrase'], df['Sentiment']
+from torch.utils.data import random_split
+from torch.utils.data import DataLoader
 
 
 def word_embed_random():
-    corpus, label = read_dataset('../lab1/data/train.tsv')
+    df = pd.read_csv('../lab1/data/train.tsv', sep='\t')
+    corpus = df['Phrase']
     res = dict()
     for sent in corpus:
-        sent_set = set(sent.lower().split(' '))
+        sent_set = set(sent.lower().split())
         embed = nn.Embedding(len(sent_set), 5)
         idx = {word: i for i, word in enumerate(sent_set)}
         for word in sent_set:
@@ -36,14 +36,61 @@ def word_embed_glove():
     with open('./word_vectors/glove_6B_100d.pkl', 'wb') as f:
         pkl.dump(res, f)
 
-def sentence_to_vector(mode='rand',dim=5):
-    
+
+def sentence_to_vector(sentence, vec_dict, dim):
+    max_length = 40
+    res = torch.empty([max_length, dim])
+    words = sentence.lower().split()
+    while len(words) < max_length:
+        words.append('<pad>')
+    for i, word in enumerate(words[:max_length]):
+        vec = vec_dict.get(word, None)
+        if vec is None:
+            res[i] = torch.randn([1, dim])
+        else:
+            res[i] = vec
+    return res
+
+
+class TextSentimentDataset(Dataset.Dataset):
+    def __init__(self, data_path, vec_path, dim):
+        df = pd.read_csv(data_path, sep='\t')
+        corpus = df['Phrase']
+        with open(vec_path, 'rb') as f:
+            dic = pkl.load(f)
+        self.dic = dic
+        self.dim = dim
+        self.data = corpus
+        self.label = df['Sentiment']
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        data = sentence_to_vector(self.data[idx], self.dic, self.dim)
+        label = self.label[idx]
+        return data, label
+
+
+def train_test_split(data_path='../lab1/data/train.tsv', vec_path='./word_vectors/random.pkl', dim=5, ratio=0.8):
+    dataset = TextSentimentDataset(data_path, vec_path, dim)
+    length = len(dataset)
+    train_length = int(length * ratio)
+    test_length = length - train_length
+    train_set, test_set = random_split(dataset, [train_length, test_length])
+    return train_set, test_set
 
 
 if __name__ == '__main__':
-
+    '''
+    word-embedding
+    '''
     # word_embed_random()
 
-    with open('./word_vectors/glove_6B_50d.pkl', 'rb') as f:
-        res = pkl.load(f)
-        pass
+    # with open('./word_vectors/glove_6B_50d.pkl', 'rb') as f:
+    #     dic = pkl.load(f)
+    # sentence = 'is also good for the gander , some of which occasionally amuses but none of which amounts to much of ' \
+    #            'a story . '
+    # vec = sentence_to_vector(sentence, dic, 50)
+    # print(vec)
+

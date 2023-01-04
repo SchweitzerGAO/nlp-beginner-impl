@@ -19,8 +19,9 @@ def word_embed_random():
         for word in sent_set:
             wv = embed(torch.LongTensor([idx[word]]))
             if res.get(word, None) is None:
-                res[word] = wv
+                res[word] = wv.reshape(5)
         print(sent)
+
     with open('./word_vectors/random.pkl', 'wb') as f:
         pkl.dump(res, f)
 
@@ -35,6 +36,14 @@ def word_embed_glove():
     with open('./word_vectors/glove_6B_100d.pkl', 'wb') as f:
         pkl.dump(res, f)
 
+def sentence_to_vector(mode='rand',dim=5):
+    
+
 
 if __name__ == '__main__':
-    word_embed_random()
+
+    # word_embed_random()
+
+    with open('./word_vectors/glove_6B_50d.pkl', 'rb') as f:
+        res = pkl.load(f)
+        pass

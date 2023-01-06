@@ -5,7 +5,8 @@ import torch
 import torch.utils.data.dataset as Dataset
 from torch import nn
 from torch.utils.data import random_split
-from torch.utils.data import DataLoader
+
+MAX_SENTENCE_SIZE = 40
 
 
 def word_embed_random():
@@ -38,7 +39,7 @@ def word_embed_glove():
 
 
 def sentence_to_vector(sentence, vec_dict, dim):
-    max_length = 40
+    max_length = MAX_SENTENCE_SIZE
     res = torch.empty([max_length, dim])
     words = sentence.lower().split()
     while len(words) < max_length:
@@ -62,6 +63,7 @@ class TextSentimentDataset(Dataset.Dataset):
         self.dim = dim
         self.data = corpus
         self.label = df['Sentiment']
+        self.num_cls = len(set(self.label))
 
     def __len__(self):
         return len(self.data)
@@ -72,8 +74,7 @@ class TextSentimentDataset(Dataset.Dataset):
         return data, label
 
 
-def train_test_split(data_path='../lab1/data/train.tsv', vec_path='./word_vectors/random.pkl', dim=5, ratio=0.8):
-    dataset = TextSentimentDataset(data_path, vec_path, dim)
+def train_test_split(dataset, ratio=0.8):
     length = len(dataset)
     train_length = int(length * ratio)
     test_length = length - train_length
@@ -93,4 +94,3 @@ if __name__ == '__main__':
     #            'a story . '
     # vec = sentence_to_vector(sentence, dic, 50)
     # print(vec)
-

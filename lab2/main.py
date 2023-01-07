@@ -9,7 +9,7 @@ df = pd.read_csv('../lab1/data/test.tsv', sep='\t')
 sents = list(df['Phrase'])
 phrase_id = list(df['PhraseId'])
 has_cuda = torch.cuda.is_available()
-vec_dim = 5
+vec_dim = 50
 out_channels = 5
 
 
@@ -39,4 +39,4 @@ def inference(net, vec_path, weight_path):
 
 if __name__ == '__main__':
     model = TextCNN(vec_dim, out_channels)
-    inference(model, './word_vectors/random.pkl', './saved_models/textcnn_random/10_128.pt')
+    inference(model, './word_vectors/glove_6B_50d.pkl', './saved_models/textcnn_random/10_128.pt')

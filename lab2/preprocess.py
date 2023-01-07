@@ -78,7 +78,7 @@ def train_test_split(dataset, ratio=0.8):
     length = len(dataset)
     train_length = int(length * ratio)
     test_length = length - train_length
-    train_set, test_set = random_split(dataset, [train_length, test_length])
+    train_set, test_set = random_split(dataset, [train_length, test_length], generator=torch.Generator().manual_seed(0))
     return train_set, test_set
 
 

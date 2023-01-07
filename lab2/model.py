@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-
+import torch.nn.functional as F
 from preprocess import TextSentimentDataset, train_test_split, MAX_SENTENCE_SIZE
 
 
@@ -11,26 +11,27 @@ class TextCNN(nn.Module):
         self.convs = nn.ModuleList([
             nn.Sequential(
                 nn.Conv2d(1, filter_num, (kernel, vec_dim)),
-                nn.ReLU(),
-                nn.MaxPool2d((MAX_SENTENCE_SIZE - kernel + 1, 1))
+                # nn.ReLU(),
+                # nn.MaxPool2d((MAX_SENTENCE_SIZE - kernel + 1, 1))
             )
             for kernel in kernels
         ])
-        self.fc = nn.Linear(filter_num * len(kernels), out_channel)
         self.dropout = nn.Dropout(dropout)
+        self.fc = nn.Linear(filter_num * len(kernels), out_channel)
 
     def forward(self, x):
         x = x.unsqueeze(1)
-        out = [conv(x) for conv in self.convs]
+        out = [F.leaky_relu(conv(x)).squeeze(3) for conv in self.convs]
+        out = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in out]
         out = torch.cat(out, dim=1)
-        out = out.view(x.size(0), -1)
+        # out = out.view(x.size(0), -1)
         out = self.dropout(out)
         return self.fc(out)
 
     def init(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.xavier_normal(m.weight.data)
+                nn.init.xavier_normal_(m.weight.data)
 
 
 if __name__ == '__main__':

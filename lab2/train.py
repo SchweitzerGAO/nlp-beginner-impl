@@ -15,7 +15,7 @@ train_set, test_set = train_test_split(dataset)
 train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True)
 
-model = TextCNN(vec_dim, dataset.num_cls, kernels=tuple([3]))
+model = TextCNN(vec_dim, dataset.num_cls)
 model.init()
 
 optimizer = optim.Adam(params=model.parameters(), lr=lr, weight_decay=1e-3)
@@ -71,12 +71,12 @@ def train(epoch, save_path):
             f'loss:{round(loss_train, 4)}; '
             f'train_acc:{round(acc_train * 100., 4)} %; '
             f'test_acc:{round(acc_test * 100., 4)} %')
-        if (i + 1) % 5 == 0:
+        if (i + 1) % 10 == 0:
             torch.save(model.state_dict(), save_path + f'/{i + 1}_{batch_size}.pt')
 
 
 if __name__ == '__main__':
     if has_cuda:
         model = model.cuda()
-    ep = 20
+    ep = 50
     train(ep, './saved_models/textcnn_glove50')

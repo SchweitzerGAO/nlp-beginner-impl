@@ -18,7 +18,6 @@ class TextCNN(nn.Module):
         ])
         self.fc = nn.Linear(filter_num * len(kernels), out_channel)
         self.dropout = nn.Dropout(dropout)
-        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
         x = x.unsqueeze(1)
@@ -26,8 +25,7 @@ class TextCNN(nn.Module):
         out = torch.cat(out, dim=1)
         out = out.view(x.size(0), -1)
         out = self.dropout(out)
-        out = self.fc(out)
-        return self.softmax(out)
+        return self.fc(out)
 
     def init(self):
         for m in self.modules():

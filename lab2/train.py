@@ -24,9 +24,8 @@ has_cuda = torch.cuda.is_available()
 
 
 def accuracy(pred, gt):
-    pred = pred.argmax(dim=1)
-    diff = (pred - gt).numpy()
-    return np.count_nonzero(diff == 0) / len(diff)
+    pred = torch.max(pred, dim=1)[1]
+    return (pred == gt).sum() / len(gt)
 
 
 def train_epoch(net, loss_func, opt):
@@ -38,9 +37,9 @@ def train_epoch(net, loss_func, opt):
             X = X.cuda()
             y = y.cuda()
         pred = net(X)
-        acc.append(accuracy(pred, y))
+        acc.append(accuracy(pred, y).cpu())
         loss = loss_func(pred, y)
-        losses.append(loss)
+        losses.append(loss.cpu().detach())
         opt.zero_grad()
         loss.backward()
         opt.step()
@@ -58,7 +57,7 @@ def evaluate(net):
                 X = X.cuda()
                 y = y.cuda()
             pred = net(X)
-            acc.append(accuracy(pred, y))
+            acc.append(accuracy(pred, y).cpu())
     avg = np.array(acc).mean()
     return avg
 

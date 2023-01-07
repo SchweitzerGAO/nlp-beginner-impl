@@ -39,6 +39,7 @@ if __name__ == '__main__':
     vec_dim = 5
     dataset = TextSentimentDataset('../lab1/data/train.tsv', './word_vectors/random.pkl', vec_dim)
     net = TextCNN(dataset.dim, dataset.num_cls)
+    net.init()
     train_set, test_set = train_test_split(dataset)
     train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
     net.train()

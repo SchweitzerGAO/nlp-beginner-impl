@@ -29,6 +29,11 @@ class TextCNN(nn.Module):
         out = self.fc(out)
         return self.softmax(out)
 
+    def init(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.xavier_normal(m.weight.data)
+
 
 if __name__ == '__main__':
     vec_dim = 5

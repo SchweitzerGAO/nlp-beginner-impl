@@ -6,15 +6,19 @@ from torch.utils.data import DataLoader
 from preprocess import TextSentimentDataset, train_test_split, MAX_SENTENCE_SIZE
 from model import TextCNN
 
+lr = 1e-3
 vec_dim = 5
-batch_size = 128
+batch_size = 64
+
 dataset = TextSentimentDataset('../lab1/data/train.tsv', './word_vectors/random.pkl', vec_dim)
 train_set, test_set = train_test_split(dataset)
 train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True)
 
 model = TextCNN(vec_dim, dataset.num_cls)
-optimizer = optim.Adam(params=model.parameters(), lr=0.5)
+model.init()
+
+optimizer = optim.Adam(params=model.parameters(), lr=lr)
 loss_function = nn.CrossEntropyLoss()
 has_cuda = torch.cuda.is_available()
 

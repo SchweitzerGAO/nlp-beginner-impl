@@ -6,7 +6,7 @@ from preprocess import TextSentimentDataset, train_test_split, MAX_SENTENCE_SIZE
 
 
 class TextCNN(nn.Module):
-    def __init__(self, vec_dim, out_channel, filter_num=100, kernels=(3, 4, 5), dropout=0.5):
+    def __init__(self, vec_dim, out_channel, filter_num=100, kernels=(3, 4, 5), dropout=0.4):
         super(TextCNN, self).__init__()
         self.convs = nn.ModuleList([
             nn.Sequential(
@@ -17,16 +17,19 @@ class TextCNN(nn.Module):
             for kernel in kernels
         ])
         self.dropout = nn.Dropout(dropout)
-        self.fc = nn.Linear(filter_num * len(kernels), out_channel)
+        self.fc1 = nn.Linear(filter_num * len(kernels), 128)
+        self.fc2 = nn.Linear(128, 64)
+        self.fc3 = nn.Linear(64, out_channel)
 
     def forward(self, x):
         x = x.unsqueeze(1)
-        out = [F.leaky_relu(conv(x)).squeeze(3) for conv in self.convs]
+        out = [F.tanh(conv(x)).squeeze(3) for conv in self.convs]
         out = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in out]
         out = torch.cat(out, dim=1)
         # out = out.view(x.size(0), -1)
         out = self.dropout(out)
-        return self.fc(out)
+        out = self.fc3(self.fc2(self.fc1(out)))
+        return out
 
     def init(self):
         for m in self.modules():

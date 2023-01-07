@@ -26,11 +26,11 @@ def inference(net, vec_path, weight_path):
             wv = sentence_to_vector(sent, dic, vec_dim)
             if has_cuda:
                 net = net.cuda()
+                wv = wv.cuda()
             wv = wv.unsqueeze(0)
             out = net(wv)
             pred = torch.max(out, dim=1)[1]
             predictions.append(np.array(pred.cpu())[0])
-            print(predictions[-1])
     with open('prediction.csv', 'w') as f:
         f.write('PhraseId,Sentiment\n')
         for i, y in zip(phrase_id, predictions):

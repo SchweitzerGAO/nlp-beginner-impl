@@ -63,7 +63,7 @@ def evaluate(net):
     return avg
 
 
-def train(epoch,save_path):
+def train(epoch, save_path):
     for i in range(epoch):
         acc_train, loss_train = train_epoch(model, loss_function, optimizer)
         acc_test = evaluate(model)
@@ -72,12 +72,12 @@ def train(epoch,save_path):
             f'loss:{round(loss_train, 4)}; '
             f'train_acc:{round(acc_train * 100., 4)} %; '
             f'test_acc:{round(acc_test * 100., 4)} %')
-        if (i+1) % 10 == 0:
-            torch.save(model.state_dict(),save_path+f'/{i+1}_{batch_size}.pt')
+        if (i + 1) % 10 == 0:
+            torch.save(model.state_dict(), save_path + f'/{i + 1}_{batch_size}.pt')
 
 
 if __name__ == '__main__':
     if has_cuda:
         model = model.cuda()
     ep = 20
-    train(ep,'./models/textcnn_random')
+    train(ep, './saved_models/textcnn_random')

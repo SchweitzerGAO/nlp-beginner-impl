@@ -17,7 +17,8 @@ def inference(net, vec_path, weight_path):
     predictions = []
     with open(vec_path, 'rb') as f:
         dic = pkl.load(f)
-    net.load_state_dict(torch.load(weight_path))
+    net.load_state_dict(torch.load(weight_path, map_location='cpu'))
+    net.eval()
     if has_cuda:
         net = net.cuda()
     with torch.no_grad():
@@ -25,6 +26,7 @@ def inference(net, vec_path, weight_path):
             wv = sentence_to_vector(sent, dic, vec_dim)
             if has_cuda:
                 net = net.cuda()
+            wv = wv.unsqueeze(0)
             out = net(wv)
             pred = torch.max(out, dim=1)[1]
             predictions.append(np.array(pred.cpu())[0])

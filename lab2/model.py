@@ -32,6 +32,8 @@ class TextCNN(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.xavier_normal_(m.weight.data)
+            if isinstance(m, nn.Linear):
+                nn.init.uniform_(m.weight.data)
 
 
 if __name__ == '__main__':

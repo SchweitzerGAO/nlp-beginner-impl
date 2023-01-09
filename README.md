@@ -6,7 +6,7 @@
 
 ## Lab 1
 
-An MLP for text classification implementation from scratch only by `numpy` is required in Lab 1
+An MLP for text classification implementation from scratch only by NumPy is required in Lab 1
 
 ---
 

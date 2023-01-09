@@ -12,8 +12,6 @@ training plot:
 
 ![](./lab1/train50.png)
 
-
-
 ## Lab 2
 
 A Pytorch version of Lab 1 with CNN and RNN classifier is required in Lab 2, whose initialization shall be random or by pre-trained GLoVe vectors. 

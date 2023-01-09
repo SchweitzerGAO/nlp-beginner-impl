@@ -31,10 +31,9 @@ class TextCNN(nn.Module):
 
     def init(self):
         for m in self.modules():
-            if isinstance(m, nn.Conv2d):
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
-            if isinstance(m, nn.Linear):
-                nn.init.xavier_normal_(m.weight.data)
+
 
 
 if __name__ == '__main__':

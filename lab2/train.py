@@ -6,9 +6,11 @@ from torch.utils.data import DataLoader
 from model import TextCNN
 from preprocess import TextSentimentDataset, train_test_split
 
+from matplotlib import pyplot as plt
+
 lr = 1e-3
 vec_dim = 50
-batch_size = 128
+batch_size = 64
 
 dataset = TextSentimentDataset('../lab1/data/train.tsv', './word_vectors/glove_6B_50d.pkl', vec_dim)
 train_set, test_set = train_test_split(dataset)
@@ -21,6 +23,9 @@ model.init()
 optimizer = optim.Adam(params=model.parameters(), lr=lr, weight_decay=1e-3)
 loss_function = nn.CrossEntropyLoss()
 has_cuda = torch.cuda.is_available()
+
+train_acc = []
+test_acc = []
 
 
 def accuracy(pred, gt):
@@ -71,8 +76,20 @@ def train(epoch, save_path):
             f'loss:{round(loss_train, 4)}; '
             f'train_acc:{round(acc_train * 100., 4)} %; '
             f'test_acc:{round(acc_test * 100., 4)} %')
+        train_acc.append(acc_train)
+        test_acc.append(acc_test)
         if (i + 1) % 10 == 0:
             torch.save(model.state_dict(), save_path + f'/{i + 1}_{batch_size}.pt')
+            plot(f'./plots/cnn_{i + 1}.png')
+
+
+def plot(file_name):
+    plt.plot(train_acc)
+    plt.plot(test_acc)
+    plt.ylim(ymin=0.48, ymax=0.65)
+    plt.title('Accuracy')
+    plt.legend(["train", 'test'])
+    plt.savefig(file_name)
 
 
 if __name__ == '__main__':

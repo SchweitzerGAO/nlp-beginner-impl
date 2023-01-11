@@ -29,7 +29,6 @@ class TextCNN(nn.Module):
         out = [F.leaky_relu(conv(x)).squeeze(3) for conv in self.convs]
         out = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in out]
         out = torch.cat(out, dim=1)
-        # out = out.view(x.size(0), -1)
         out = self.dropout(out)
         out = self.fc2(self.fc1(out))
         return out

@@ -61,7 +61,7 @@ class TextRNN(nn.Module):
             self.num_dir = 1
         else:
             self.num_dir = 2
-        self.fc = nn.Linear(hidden_size * num_layers, output_size)
+        self.fc = nn.Linear(hidden_size * self.num_dir, output_size)
 
     def init_state(self, batch_size=1):
         if not isinstance(self.rnn_layer, nn.LSTM):

@@ -4,8 +4,6 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from preprocess import TextSentimentDataset, train_test_split
-
-
 class TextCNN(nn.Module):
     def __init__(self, vec_dim, out_channel, filter_num=100, kernels=(3, 4, 5), dropout=0.5):
         super(TextCNN, self).__init__()
@@ -19,7 +17,7 @@ class TextCNN(nn.Module):
         self.fc1 = nn.Linear(filter_num * len(kernels), 128)
         self.fc2 = nn.Linear(128, out_channel)
 
-    def init_state(self):
+    def init_weight(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
@@ -78,14 +76,15 @@ class TextRNN(nn.Module):
 
     def forward(self, x, state):
         out, state = self.rnn_layer(x, state)
-        out = self.fc(out.reshape(-1, out.shape[-1]))
+        out = self.fc(out)
+        out = out[:, -1, :]  # get the last sequence of time
         return out, state
 
 
 if __name__ == '__main__':
     vec_dim = 5
     dataset = TextSentimentDataset('../lab1/data/train.tsv', './word_vectors/random.pkl', vec_dim)
-    net = TextRNN(vec_dim, 256, dataset.num_cls, mode='lstm')
+    net = TextRNN(vec_dim, 256, dataset.num_cls)
     state = net.init_state(batch_size=64)
     train_set, test_set = train_test_split(dataset)
     train_loader = DataLoader(train_set, batch_size=64, shuffle=True)

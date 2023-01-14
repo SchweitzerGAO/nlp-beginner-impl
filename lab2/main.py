@@ -13,7 +13,7 @@ vec_dim = 50
 out_channels = 5
 
 
-def inference(net, vec_path, weight_path):
+def inference_cnn(net, vec_path, weight_path):
     predictions = []
     with open(vec_path, 'rb') as f:
         dic = pkl.load(f)
@@ -37,6 +37,9 @@ def inference(net, vec_path, weight_path):
             f.write('{},{}\n'.format(i, y))
 
 
+def inference_rnn(net, vec_path, weight_path):
+    pass
+
 if __name__ == '__main__':
     model = TextCNN(vec_dim, out_channels)
-    inference(model, './word_vectors/glove_6B_50d.pkl', './saved_models/textcnn_random/10_128.pt')
+    inference_cnn(model, './word_vectors/glove_6B_50d.pkl', './saved_models/textcnn_random/10_128.pt')

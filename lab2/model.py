@@ -64,15 +64,15 @@ class TextRNN(nn.Module):
         if not isinstance(self.rnn_layer, nn.LSTM):
             # nn.GRU uses Tensor as a hidden state
             return torch.zeros((self.num_dir * self.rnn_layer.num_layers,
-                                batch_size, self.hidden_size), device=device)
+                                batch_size, self.hidden_size)).to(device)
         else:
             # nn.LSTM uses tuple as a hidden state
             return (torch.zeros((
                 self.num_dir * self.rnn_layer.num_layers,
-                batch_size, self.hidden_size), device=device),
+                batch_size, self.hidden_size)).to(device),
                     torch.zeros((
                         self.num_dir * self.rnn_layer.num_layers,
-                        batch_size, self.hidden_size), device=device))
+                        batch_size, self.hidden_size), device=device).to(device))
 
     def forward(self, x, state):
         out, state = self.rnn_layer(x, state)

@@ -25,7 +25,7 @@ class TextCNN(nn.Module):
     def forward(self, x):
         x = x.unsqueeze(1)
         out = [F.leaky_relu(conv(x)).squeeze(3) for conv in self.convs]
-        out = [F.max_pool1d(i, i.size(2)).squeeze(2) for i in out]
+        out = [F.max_pool1d(o, o.size(2)).squeeze(2) for o in out]
         out = torch.cat(out, dim=1)
         out = self.dropout(out)
         out = self.fc2(self.fc1(out))
@@ -33,7 +33,7 @@ class TextCNN(nn.Module):
 
 
 class TextRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, mode='gru', num_layers=1, dropout=0.5, bi_dir=False):
+    def __init__(self, input_size, hidden_size, output_size, mode='gru', num_layers=1, dropout=0.5, bi_dir=False,batch_first=True):
         super(TextRNN, self).__init__()
         self.hidden_size = hidden_size
         if num_layers > 1:
@@ -44,14 +44,14 @@ class TextRNN(nn.Module):
             self.rnn_layer = nn.GRU(input_size=input_size,
                                     hidden_size=hidden_size,
                                     num_layers=num_layers,
-                                    batch_first=True,
+                                    batch_first=batch_first,
                                     dropout=self.dropout,
                                     bidirectional=bi_dir)
         elif mode == 'lstm':
             self.rnn_layer = nn.LSTM(input_size=input_size,
                                      hidden_size=hidden_size,
                                      num_layers=num_layers,
-                                     batch_first=True,
+                                     batch_first=batch_first,
                                      dropout=self.dropout,
                                      bidirectional=bi_dir)
         if not bi_dir:

@@ -33,7 +33,7 @@ class TextCNN(nn.Module):
 
 
 class TextRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, mode='gru', num_layers=1, dropout=0.5, bi_dir=False,batch_first=True):
+    def __init__(self, input_size, hidden_size, output_size, mode='gru', num_layers=1, dropout=0.5, bi_dir=False):
         super(TextRNN, self).__init__()
         self.hidden_size = hidden_size
         if num_layers > 1:
@@ -44,14 +44,14 @@ class TextRNN(nn.Module):
             self.rnn_layer = nn.GRU(input_size=input_size,
                                     hidden_size=hidden_size,
                                     num_layers=num_layers,
-                                    batch_first=batch_first,
+                                    batch_first=True,
                                     dropout=self.dropout,
                                     bidirectional=bi_dir)
         elif mode == 'lstm':
             self.rnn_layer = nn.LSTM(input_size=input_size,
                                      hidden_size=hidden_size,
                                      num_layers=num_layers,
-                                     batch_first=batch_first,
+                                     batch_first=True,
                                      dropout=self.dropout,
                                      bidirectional=bi_dir)
         if not bi_dir:

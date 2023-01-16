@@ -129,13 +129,13 @@ optimizer_rnn = optim.Adam(params=model_rnn.parameters(), lr=lr)
 
 
 # TextRNN train and evaluate
-def train_epoch_rnn(net, loss_func, opt, state=None, grad_clip=False):
+def train_epoch_rnn(net, loss_func, opt, device, state=None, grad_clip=False):
     acc = []
     losses = []
     net.train()
     for X, y in train_loader:
         if state is None:
-            state = net.init_state(batch_size=batch_size)
+            state = net.init_state(batch_size=batch_size, device=device)
         else:
             if not isinstance(state, tuple):
                 state.detach_()  # detach the computation graph
@@ -159,11 +159,11 @@ def train_epoch_rnn(net, loss_func, opt, state=None, grad_clip=False):
     return avg_acc, avg_loss
 
 
-def evaluate_rnn(net):
+def evaluate_rnn(net, device):
     acc = []
     net.eval()
     with torch.no_grad():
-        state = net.init_state(batch_size=batch_size)
+        state = net.init_state(batch_size=batch_size, device=device)
         for X, y in test_loader:
             if has_cuda:
                 X = X.cuda()
@@ -175,11 +175,13 @@ def evaluate_rnn(net):
 
 
 def train_rnn(net, loss_func, opt, epoch, save_path, grad_clip=False):
+    device = 'cpu'
     if has_cuda:
         net = net.cuda()
+        device = 'cuda:0'
     for i in range(epoch):
-        acc_train, loss_train = train_epoch_rnn(model_rnn, loss_func, opt, grad_clip=grad_clip)
-        acc_test = evaluate_rnn(net)
+        acc_train, loss_train = train_epoch_rnn(model_rnn, loss_func, opt, device=device, grad_clip=grad_clip)
+        acc_test = evaluate_rnn(net,device)
         print(
             f'Epoch({i + 1}/{epoch}): '
             f'loss:{round(loss_train, 4)}; '

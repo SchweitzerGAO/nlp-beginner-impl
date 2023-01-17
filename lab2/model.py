@@ -4,6 +4,8 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from preprocess import TextSentimentDataset, train_test_split
+
+
 class TextCNN(nn.Module):
     def __init__(self, vec_dim, out_channel, filter_num=100, kernels=(3, 4, 5), dropout=0.5):
         super(TextCNN, self).__init__()
@@ -77,15 +79,18 @@ class TextRNN(nn.Module):
     def forward(self, x, state):
         out, state = self.rnn_layer(x, state)
         out = self.fc(out)
-        out = out[:, -1, :]  # get the last sequence of time
+        if self.num_dir == 1:
+            out = out[:, -1, :]  # get the last sequence of prediction in classification task
+        elif self.num_dir == 2:
+            out = torch.cat((out[:, -1, :], out[:, -2, :]), dim=1)
         return out, state
 
 
 if __name__ == '__main__':
     vec_dim = 5
     dataset = TextSentimentDataset('../lab1/data/train.tsv', './word_vectors/random.pkl', vec_dim)
-    net = TextRNN(vec_dim, 256, dataset.num_cls)
-    state = net.init_state(batch_size=64)
+    net = TextRNN(vec_dim, 256, dataset.num_cls,bi_dir=True)
+    state = net.init_state(batch_size=64, device='cpu')
     train_set, test_set = train_test_split(dataset)
     train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
     net.train()

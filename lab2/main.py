@@ -68,6 +68,6 @@ def prediction_rnn(net, vec_path, weight_path):
 if __name__ == '__main__':
     # model_cnn = TextCNN(vec_dim, out_channels)
     # inference_cnn(model_cnn, './word_vectors/glove_6B_50d.pkl', './saved_models/textcnn_glove_50/50_128.pt')
-    model_rnn = TextRNN(vec_dim, hidden_size, out_channels, mode='lstm')
-    prediction_rnn(model_rnn, './word_vectors/glove_6B_100d.pkl', './saved_models/textrnn_lstm_glove_100/50_64.pt')
+    model_rnn = TextRNN(vec_dim, hidden_size, out_channels)
+    prediction_rnn(model_rnn, './word_vectors/glove_6B_100d.pkl', './saved_models/textrnn_gru_glove_100/50_64.pt')
 

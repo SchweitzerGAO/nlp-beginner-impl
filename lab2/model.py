@@ -79,10 +79,7 @@ class TextRNN(nn.Module):
     def forward(self, x, state):
         out, state = self.rnn_layer(x, state)
         out = self.fc(out)
-        if self.num_dir == 1:
-            out = out[:, -1, :]  # get the last sequence of prediction in classification task
-        elif self.num_dir == 2:
-            out = torch.cat((out[:, -1, :], out[:, -2, :]), dim=1)
+        out = out[:, -1, :]  # get the last sequence of prediction in classification task
         return out, state
 
 

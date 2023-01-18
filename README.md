@@ -86,9 +86,23 @@ The best performance on the same competition in Lab 1 reached 61.3%
 
 *A possible reason for this is the parameters in the hidden layer of LSTM(a tuple of 2 tensors) is more than that in GRU(1 tensor). So it is prone to overfit.*
 
-- Bi-GRU with GLoVe 100d
+4. Bi-GRU with GLoVe 100d
 
-- Bi-LSTM with GLoVe 100d
+*learning rate 0.001*
+
+*batch size 64*
+
+*weight decay 1e-4*
+
+![](./lab2/plots/rnn_bigru_100.png)
+
+The best performance on the same competition in Lab 1 is 60.7%
+
+I do not know why Bi-GRU or Bi-LSTM won't improve performance. Maybe there is better hyper-parameter combinations.
+
+Besides I also tried gradient clipping but it will do bad to this lab because the amount of training data is not large(at $10^5$ level). Gradient boom won't appear.
+
+This is the end of lab 2
 
 ## Lab 3
 

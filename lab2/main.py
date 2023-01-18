@@ -11,7 +11,7 @@ phrase_id = list(df['PhraseId'])
 has_cuda = torch.cuda.is_available()
 vec_dim = 100
 out_channels = 5
-hidden_size = 64
+hidden_size = 128
 
 
 def prediction_cnn(net, vec_path, weight_path):
@@ -68,6 +68,6 @@ def prediction_rnn(net, vec_path, weight_path):
 if __name__ == '__main__':
     # model_cnn = TextCNN(vec_dim, out_channels)
     # inference_cnn(model_cnn, './word_vectors/glove_6B_50d.pkl', './saved_models/textcnn_glove_50/50_128.pt')
-    model_rnn = TextRNN(vec_dim, hidden_size, out_channels)
-    prediction_rnn(model_rnn, './word_vectors/glove_6B_100d.pkl', './saved_models/textrnn_gru_glove_100/50_64.pt')
+    model_rnn = TextRNN(vec_dim, hidden_size, out_channels, bi_dir=True)
+    prediction_rnn(model_rnn, './word_vectors/glove_6B_100d.pkl', './saved_models/textrnn_bigru_glove_100/50_64.pt')
 

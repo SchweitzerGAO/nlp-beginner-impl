@@ -98,18 +98,12 @@ The best performance on the same competition in Lab 1 reached 61.3%
 
 The best performance on the same competition in Lab 1 is 60.7%
 
-I do not know why Bi-GRU or Bi-LSTM won't improve performance. Maybe there is better hyper-parameter combinations.
+*I do not know why Bi-GRU or Bi-LSTM won't improve performance. Maybe there is better hyper-parameter combinations.*
 
-Besides I also tried gradient clipping but it will do bad to this lab because the amount of training data is not large(at $10^5$ level). Gradient boom won't appear.
+*Besides I also tried gradient clipping but it will do bad to this lab because the amount of training data is not large(at $10^5$ level). Gradient boom won't appear.*
 
-This is the end of lab 2
+*This is the end of lab 2*
 
-## Lab 3
 
----
 
-## Lab 4
-
----
-
-## Lab 5
+**More at [nlp-lab | All starts, few finishes](https://schweitzergao.github.io/2023/01/25/nlp-lab/#more)**

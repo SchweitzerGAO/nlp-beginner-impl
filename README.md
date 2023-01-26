@@ -104,6 +104,14 @@ The best performance on the same competition in Lab 1 is 60.7%
 
 *This is the end of lab 2*
 
+---
 
+## Lab 3
 
-**More at [nlp-lab | All starts, few finishes](https://schweitzergao.github.io/2023/01/25/nlp-lab/#more)**
+---
+
+## Lab 4
+
+---
+
+## Lab 5

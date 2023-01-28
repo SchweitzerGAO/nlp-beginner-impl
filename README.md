@@ -108,10 +108,16 @@ The best performance on the same competition in Lab 1 is 60.7%
 
 ## Lab 3
 
+Theoretical studying in progress
+
 ---
 
 ## Lab 4
 
+To be done
+
 ---
 
 ## Lab 5
+
+To be done

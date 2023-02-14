@@ -18,7 +18,7 @@ batch_size = 64
 hidden_size = 256
 
 # loss function & optimizer
-loss_function = nn.CrossEntropyLoss()
+loss_function = nn.CrossEntropyLoss()  # has a softmax layer embedded
 
 # GPU accessibility
 has_cuda = torch.cuda.is_available()

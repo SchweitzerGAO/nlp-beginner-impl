@@ -102,7 +102,7 @@ The best performance on the same competition in Lab 1 is 60.7%
 
 *Besides I also tried gradient clipping but it will do bad to this lab because the amount of training data is not large(at $10^5$ level). Gradient boom won't appear.*
 
-*This is the end of lab 2*
+*This is the end of lab 1 & 2*
 
 ---
 

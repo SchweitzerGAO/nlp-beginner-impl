@@ -30,8 +30,9 @@ test_acc = []
 # dataset
 dataset = TextSentimentDataset('../lab1/data/train.tsv', './word_vectors/random.pkl', vec_dim)
 train_set, test_set = train_test_split(dataset)
-train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,drop_last=True) # drop_last = True only when training RNN model
-test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True,drop_last=True)
+train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,
+                          drop_last=True)  # drop_last = True only when training RNN model
+test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True, drop_last=True)
 
 '''
 accuracy
@@ -181,7 +182,7 @@ def train_rnn(net, loss_func, opt, epoch, save_path, grad_clip=False):
         device = 'cuda:0'
     for i in range(epoch):
         acc_train, loss_train = train_epoch_rnn(model_rnn, loss_func, opt, device=device, grad_clip=grad_clip)
-        acc_test = evaluate_rnn(net,device)
+        acc_test = evaluate_rnn(net, device)
         print(
             f'Epoch({i + 1}/{epoch}): '
             f'loss:{round(loss_train, 4)}; '

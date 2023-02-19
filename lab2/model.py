@@ -8,7 +8,7 @@ from preprocess import TextSentimentDataset, train_test_split
 
 class TextCNN(nn.Module):
     def __init__(self, vec_dim, out_channel, filter_num=100, kernels=(3, 4, 5), dropout=0.5):
-        super(TextCNN, self).__init__()
+        super().__init__()
         self.convs = nn.ModuleList([
             nn.Sequential(
                 nn.Conv2d(1, filter_num, (kernel, vec_dim)),
@@ -36,7 +36,7 @@ class TextCNN(nn.Module):
 
 class TextRNN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, mode='gru', num_layers=1, dropout=0.5, bi_dir=False):
-        super(TextRNN, self).__init__()
+        super().__init__()
         self.hidden_size = hidden_size
         if num_layers > 1:
             self.dropout = dropout

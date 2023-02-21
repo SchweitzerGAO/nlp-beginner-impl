@@ -1,4 +1,7 @@
 import re
+import collections
+import torch
+import random
 
 
 def read_data():
@@ -11,8 +14,108 @@ def tokenize(lines):
     return [list(line) for line in lines]
 
 
-if __name__ == '__main__':
+# count the number that each character appears
+def count_corpus(tokens):
+    if isinstance(tokens[0], list):
+        tokens = [token for line in tokens for token in line]
+    return collections.Counter(tokens)
+
+
+class Vocab:
+    def __init__(self, tokens=None, min_freq=0, reserved_tokens=None):
+        self.unk = 0
+        if tokens is None:
+            tokens = []
+        if reserved_tokens is None:
+            reserved_tokens = []
+        counter = count_corpus(tokens)
+        # descending by number of appearance
+        self.token_sorted = sorted(counter.items(), key=lambda x: x[1], reverse=True)
+        self.idx_to_token = ['<unk>'] + reserved_tokens
+        self.token_to_idx = {token: idx for idx, token in enumerate(self.idx_to_token)}
+        for token, freq in self.token_sorted:
+            if freq < min_freq:
+                break
+            if token not in self.token_to_idx:
+                self.idx_to_token.append(token)  # a list of descending order by appearance
+                self.token_to_idx[token] = len(self.idx_to_token) - 1  # an inverse operation of idx_to_token
+
+    def __len__(self):
+        return len(self.idx_to_token)
+
+    def __getitem__(self, tokens):
+        if not isinstance(tokens, (list, tuple)):
+            return self.token_to_idx.get(tokens, self.unk)
+        return [self.__getitem__(token) for token in tokens]
+
+    def to_tokens(self, indices):
+        if not isinstance(indices, (list, tuple)):
+            return self.idx_to_token[indices]
+        return [self.idx_to_token[index] for index in indices]
+
+
+def load_corpus(max_tokens=None):
     lines = read_data()
     tokens = tokenize(lines)
-    for i in range(10):
-        print(tokens[i])
+    vocab = Vocab(tokens=tokens)
+    corpus = [vocab[token] for line in tokens for token in line]  # get the 'digitalized' character
+    if max_tokens is not None:
+        corpus = corpus[:max_tokens]
+    return corpus, vocab
+
+
+# randomly loaded data
+def seq_data_iter_random(corpus, batch_size, num_steps):
+    corpus = corpus[random.randint(0, num_steps - 1):]
+    num_subseqs = (len(corpus) - 1) // num_steps
+    initial_indices = list(range(0, num_subseqs * num_steps, num_steps))
+    random.shuffle(initial_indices)  # here shuffles the indices
+
+    def data(pos):
+        return corpus[pos: pos + num_steps]
+
+    num_batches = num_subseqs // batch_size
+    for i in range(0, batch_size * num_batches, batch_size):
+        initial_indices_per_batch = initial_indices[i: i + batch_size]
+        X = [data(j) for j in initial_indices_per_batch]
+        y = [data(j + 1) for j in initial_indices_per_batch]
+        yield torch.tensor(X), torch.tensor(y)
+
+
+# sequentially loaded data
+def seq_data_iter_sequential(corpus, batch_size, num_steps):
+    offset = random.randint(0, num_steps)
+    num_tokens = ((len(corpus) - offset - 1) // batch_size) * batch_size  # a preparation of reshape
+    # the batches not shuffled thus it is sequential
+    X_batch = torch.tensor(corpus[offset: offset + num_tokens])
+    y_batch = torch.tensor(corpus[offset + 1: offset + 1 + num_tokens])
+    X_batch, y_batch = X_batch.reshape(batch_size, -1), y_batch.reshape(batch_size, -1)
+    num_batches = X_batch.shape[1] // num_steps
+    for i in range(0, num_steps * num_batches, num_steps):
+        X = X_batch[:, i: i + num_steps]
+        y = y_batch[:, i: i + num_steps]
+        yield X, y
+
+
+class SeqDataLoader:
+
+    def __init__(self, batch_size, num_steps, use_random_iter, max_tokens):
+        if use_random_iter:
+            self.data_iter_fn = seq_data_iter_random
+        else:
+            self.data_iter_fn = seq_data_iter_sequential
+        self.corpus, self.vocab = load_corpus(max_tokens)
+        self.batch_size, self.num_steps = batch_size, num_steps
+
+    def __iter__(self):
+        return self.data_iter_fn(self.corpus, self.batch_size, self.num_steps)
+
+
+def load_poems(batch_size, num_steps, use_random=False, max_tokens=None):
+    iterator = SeqDataLoader(batch_size, num_steps, use_random, max_tokens)
+    return iterator, iterator.vocab
+
+
+if __name__ == '__main__':
+    it, voc = load_poems(batch_size=64, num_steps=5)
+    print(len(voc))

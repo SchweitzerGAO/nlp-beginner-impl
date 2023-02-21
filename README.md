@@ -1,5 +1,7 @@
 # nlp-beginner-impl
 
+This is an possible implementation of https://github.com/FudanNLP/nlp-beginner
+
 [TOC]
 
 ---
@@ -108,7 +110,7 @@ The best performance on the same competition in Lab 1 is 60.7%
 
 ## Lab 3
 
-Theoretical studying in progress
+To be done
 
 ---
 
@@ -119,5 +121,3 @@ To be done
 ---
 
 ## Lab 5
-
-To be done

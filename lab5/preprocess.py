@@ -2,6 +2,7 @@ import re
 import collections
 import torch
 import random
+from torch import nn
 
 
 def read_data():
@@ -97,8 +98,7 @@ def seq_data_iter_sequential(corpus, batch_size, num_steps):
         yield X, y
 
 
-class SeqDataLoader:
-
+class PoemDataLoader:
     def __init__(self, batch_size, num_steps, use_random_iter, max_tokens):
         if use_random_iter:
             self.data_iter_fn = seq_data_iter_random
@@ -112,10 +112,13 @@ class SeqDataLoader:
 
 
 def load_poems(batch_size, num_steps, use_random=False, max_tokens=None):
-    iterator = SeqDataLoader(batch_size, num_steps, use_random, max_tokens)
-    return iterator, iterator.vocab
+    data = PoemDataLoader(batch_size, num_steps, use_random, max_tokens)
+    return data, data.vocab
 
 
 if __name__ == '__main__':
-    it, voc = load_poems(batch_size=64, num_steps=5)
-    print(len(voc))
+    data, voc = load_poems(batch_size=64, num_steps=10)
+    embed = nn.Embedding(len(voc), 100)
+    for X, y in data:
+        X_embed = embed(X)
+        pass

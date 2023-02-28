@@ -34,7 +34,7 @@ def word_embed_glove():
             line = line.split(' ')
             vec = torch.Tensor([float(number) for number in line[1:]])
             res[line[0]] = vec
-    with open('./word_vectors/glove_6B_100d.pkl', 'wb') as f:
+    with open('../public/glove_6B_100d.pkl', 'wb') as f:
         pkl.dump(res, f)
 
 

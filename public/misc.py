@@ -1,5 +1,7 @@
 import collections
 import torch
+import pickle as pkl
+
 
 # count the number that each character appears
 def count_corpus(tokens):
@@ -11,7 +13,7 @@ def count_corpus(tokens):
 def truncate_pad(sentence_idx, length, pad_idx):
     while len(sentence_idx) < length:
         sentence_idx.append(pad_idx)
-    return torch.Tensor(sentence_idx[:length])
+    return torch.Tensor(sentence_idx[:length], )
 
 
 class Vocab:
@@ -45,3 +47,22 @@ class Vocab:
         if not isinstance(indices, (list, tuple)):
             return self.idx_to_token[indices]
         return [self.idx_to_token[index] for index in indices]
+
+
+class TokenEmbedding:
+    def __init__(self, path):
+        with open(path, 'rb') as f:
+            self.word_vectors = pkl.load(f)
+        self.word_vectors['<unk>'] = torch.zeros_like(self.word_vectors['the'])
+        self.word_vectors['<pad>'] = torch.zeros_like(self.word_vectors['the'])
+
+    def __getitem__(self, words):
+        return torch.stack([self.word_vectors.get(word, self.word_vectors['<unk>']) for word in words])
+
+    def __len__(self):
+        return len(self.word_vectors)
+
+
+if __name__ == '__main__':
+    wv = TokenEmbedding('./glove_6B_100d.pkl')
+    pass

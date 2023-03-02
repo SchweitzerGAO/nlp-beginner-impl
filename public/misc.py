@@ -13,7 +13,7 @@ def count_corpus(tokens):
 def truncate_pad(sentence_idx, length, pad_idx):
     while len(sentence_idx) < length:
         sentence_idx.append(pad_idx)
-    return torch.Tensor(sentence_idx[:length], )
+    return torch.Tensor(sentence_idx[:length])
 
 
 class Vocab:

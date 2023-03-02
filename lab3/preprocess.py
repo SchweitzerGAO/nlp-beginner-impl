@@ -30,7 +30,7 @@ def read_data(path, test=False):
                     premises.append(parse2sentence(data[1]))
                     hypotheses.append(parse2sentence(data[2]))
                     labels.append(label_set[data[0]])
-            if test and i >= 1000:
+            if test and i > 1000:
                 break
     return premises, hypotheses, labels
 
@@ -48,7 +48,7 @@ class SNLIDataset(Dataset.Dataset):
                            reserved_tokens=['<pad>']) if vocab is None else vocab
         self.premises = self._pad(premise_tokens) if trunc_pad else self._direct(premise_tokens)
         self.hypotheses = self._pad(hypotheses_tokens) if trunc_pad else self._direct(hypotheses_tokens)
-        self.labels = torch.Tensor(labels)
+        self.labels = torch.LongTensor(labels)
 
     def _pad(self, tokens):
         return [truncate_pad(self.vocab[token], self.length, self.vocab['<pad>']) for token in tokens]
@@ -63,12 +63,12 @@ class SNLIDataset(Dataset.Dataset):
         return (self.premises[idx], self.hypotheses[idx]), self.labels[idx]
 
 
-def load_train_data(batch_size=32, length=50, test=False, trunc_pad=True):
+def load_train_data(batch_size=32, length=50, test=False, trunc_pad=True,num_workers=0):
     premises, hypotheses, labels = read_data('./snli_1.0/snli_1.0_train.txt', test=test)
     with open('./train_vocab.pkl', 'rb') as f:
         vocab = pkl.load(f)
     train_set = SNLIDataset(premises, hypotheses, labels, length=length, vocab=vocab, trunc_pad=trunc_pad)
-    return DataLoader(train_set, batch_size=batch_size, shuffle=True, drop_last=True), vocab
+    return DataLoader(train_set, batch_size=batch_size, shuffle=True, drop_last=True,num_workers=num_workers), vocab
 
 
 if __name__ == '__main__':

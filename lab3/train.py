@@ -10,14 +10,13 @@ import numpy as np
 '''
 hyper-parameters
 '''
-batch_size = 32
+batch_size = 64
 embed_size = 100
 length = 50
 hidden_size_lstm = 128
 hidden_size_dense = 128
-momentum = 0.9
-lr = 4e-4
-ep = 100
+lr = 0.01
+ep = 20
 dropout = 0.5
 
 '''
@@ -30,17 +29,18 @@ accuracies = []
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
 # preparation
-train_loader, vocab = load_train_data(batch_size=batch_size, length=length)
+train_loader, vocab = load_train_data(batch_size=batch_size, length=length, test=True, num_workers=4)
 net = ESIM(vocab, embed_size, length, hidden_size_lstm, hidden_size_dense, output_size=3, dropout=0.5)
 net = net.to(device)
 loss_function = nn.CrossEntropyLoss()  # has a softmax layer embedded
-optimizer = optim.Adam(net.parameters(), lr=lr)
+optimizer = optim.SGD(net.parameters(), lr=lr)
 
 
 def plot(file_name, to_plot, title):
     plt.plot(to_plot)
     plt.title(title)
     plt.savefig(file_name)
+
 
 def accuracy(pred, gt):
     pred = F.softmax(pred, dim=1)
@@ -52,16 +52,15 @@ def train_epoch():
     acc = []
     losses = []
     for (A, B), y in train_loader:
-        optimizer.zero_grad()
         A = A.to(device)
         B = B.to(device)
         y = y.to(device)
         y_hat = net(A, B)
         acc.append(accuracy(y_hat, y).cpu())
-        loss = loss_function(y_hat, y.long())
-        losses.append(loss.cpu().detach())
+        l = loss_function(y_hat, y)
+        losses.append(l.cpu().detach())
         optimizer.zero_grad()
-        loss.backward()
+        l.backward()
         optimizer.step()
     avg_acc = np.array(acc).mean()
     avg_loss = np.array(losses).mean()
@@ -71,7 +70,7 @@ def train_epoch():
 def train(save_path):
     net.train()
     for i in range(ep):
-        l, acc = train_epoch()
+        acc, l = train_epoch()
         print(
             f'Epoch({i + 1}/{ep}): '
             f'loss:{round(l, 4)}; '

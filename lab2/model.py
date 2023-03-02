@@ -30,7 +30,9 @@ class TextCNN(nn.Module):
         out = [F.max_pool1d(o, o.size(2)).squeeze(2) for o in out]
         out = torch.cat(out, dim=1)
         out = self.dropout(out)
-        out = self.fc2(self.fc1(out))
+        out = self.fc1(out)
+        out = self.dropout(out)
+        out = self.fc2(out)
         return out
 
 

@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+
 from preprocess import load_train_data
 from public.misc import TokenEmbedding
-import torch.nn.functional as F
-import pickle as pkl
 
 
 def local_inference(A_bar, B_bar, E_row, E_col):
@@ -64,7 +64,7 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, input_size, length, hidden_size_lstm, hidden_size_dense, output_size):
+    def __init__(self, input_size, length, hidden_size_lstm, hidden_size_dense, output_size, dropout=0.5):
         super().__init__()
         self.bi_lstm = nn.LSTM(input_size=input_size,
                                hidden_size=hidden_size_lstm,
@@ -74,7 +74,7 @@ class Decoder(nn.Module):
         self.max_pool = nn.MaxPool1d(kernel_size=length)
         self.fc1 = nn.Linear(input_size, hidden_size_dense)
         self.fc2 = nn.Linear(hidden_size_dense, output_size)
-        self.dropout = nn.Dropout(0.5)
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, M_A, M_B):
         V_A, _ = self.bi_lstm(M_A)
@@ -86,16 +86,17 @@ class Decoder(nn.Module):
         A_max = self.max_pool(V_A).squeeze(2)
         B_max = self.max_pool(V_B).squeeze(2)
         V = torch.cat((A_ave, A_max, B_ave, B_max), dim=1)
-        out1 = self.dropout(self.fc1(V))
-        out = self.dropout(self.fc2(out1))
+        out1 = self.fc1(self.dropout(V))
+        out = self.fc2(self.dropout(out1))
         return out
 
 
 class ESIM(nn.Module):
-    def __init__(self, vocab, embed_size, length, hidden_size_lstm, hidden_size_dense, output_size):
+    def __init__(self, vocab, embed_size, length, hidden_size_lstm, hidden_size_dense, output_size, dropout=0.5):
         super().__init__()
         self.encoder = Encoder(len(vocab), embed_size, hidden_size_lstm)
-        self.decoder = Decoder(hidden_size_lstm * 2 * 4, length, hidden_size_lstm, hidden_size_dense, output_size)
+        self.decoder = Decoder(hidden_size_lstm * 2 * 4, length, hidden_size_lstm,
+                               hidden_size_dense, output_size, dropout=dropout)
         wv = TokenEmbedding('../public/glove_6B_100d.pkl')
         weight_embed = wv[vocab.idx_to_token]
         self.encoder.embed.weight.data.copy_(weight_embed)
@@ -112,7 +113,8 @@ if __name__ == '__main__':
     hidden_size = 128
     train_loader, vocab = load_train_data(test=True)
     net = ESIM(vocab, embed_size=100, length=50, hidden_size_lstm=128, hidden_size_dense=128, output_size=3)
-
+    net.eval()
     for (A, B), y in train_loader:
         y_hat = net(A, B)
+        y_softmax = F.softmax(y_hat, dim=1)
         pass

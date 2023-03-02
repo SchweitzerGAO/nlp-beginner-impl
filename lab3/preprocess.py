@@ -30,7 +30,7 @@ def read_data(path, test=False):
                     premises.append(parse2sentence(data[1]))
                     hypotheses.append(parse2sentence(data[2]))
                     labels.append(label_set[data[0]])
-            if i >= 1000 and test:
+            if test and i >= 1000:
                 break
     return premises, hypotheses, labels
 

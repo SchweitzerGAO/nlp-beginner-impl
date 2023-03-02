@@ -24,7 +24,7 @@ dropout = 0.5
 plots
 '''
 loss = []
-accuracy = []
+accuracies = []
 
 # gpu accessibility
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -77,7 +77,7 @@ def train(save_path):
             f'loss:{round(l, 4)}; '
             f'accuracy:{round(acc * 100., 4)} %')
         loss.append(l)
-        accuracy.append(acc)
+        accuracies.append(acc)
         if (i + 1) % 10 == 0:
             torch.save(net.state_dict(), save_path + f'/{i + 1}_{batch_size}.pt')
     plot(f'./plots/{ep}_loss.png', loss, 'Loss')

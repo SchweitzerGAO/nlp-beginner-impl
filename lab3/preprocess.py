@@ -36,7 +36,10 @@ def read_data(path, test=False):
 
 
 def tokenize_word(lines):
-    return [line.split() for line in lines]
+    if isinstance(lines, list):
+        return [line.split() for line in lines]
+    else:
+        return lines.split()
 
 
 class SNLIDataset(Dataset.Dataset):
@@ -68,7 +71,7 @@ def load_train_data(batch_size=32, length=50, test=False, trunc_pad=True,num_wor
     with open('./train_vocab.pkl', 'rb') as f:
         vocab = pkl.load(f)
     train_set = SNLIDataset(premises, hypotheses, labels, length=length, vocab=vocab, trunc_pad=trunc_pad)
-    return DataLoader(train_set, batch_size=batch_size, shuffle=True, drop_last=True,num_workers=num_workers), vocab
+    return DataLoader(train_set, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=num_workers), vocab
 
 
 if __name__ == '__main__':

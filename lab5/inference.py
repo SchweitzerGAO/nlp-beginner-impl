@@ -9,7 +9,7 @@ _, vocab = load_corpus()
 
 embedding_size = 100
 hidden_size = 256
-pred_length = 40
+pred_length = 14
 net = TextGenerator(embedding_size, hidden_size, len(vocab))
 
 
@@ -35,7 +35,7 @@ def inference(start, weight_path):
 
 
 if __name__ == '__main__':
-    sent_len = pred_length // 8
-    outputs = inference('花', 'saved_model/gru/100_64_10.pt')
+    sent_len = pred_length // 2
+    outputs = inference('帆', 'saved_model/gru/100_64_10.pt')
     for i in range(0, len(outputs), sent_len):
         print(''.join(outputs[i:i+sent_len]))

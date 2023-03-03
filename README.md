@@ -1,6 +1,6 @@
 # nlp-beginner-impl
 
-This is an possible implementation of https://github.com/FudanNLP/nlp-beginner
+This is a possible implementation of https://github.com/FudanNLP/nlp-beginner
 
 [TOC]
 

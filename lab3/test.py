@@ -49,4 +49,4 @@ def test(weight_path):
 
 
 if __name__ == '__main__':
-    test('./saved_models/20_256.pt')
+    test('./saved_models/10_256.pt')

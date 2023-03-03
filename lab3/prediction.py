@@ -29,6 +29,6 @@ def prediction(weight_path, premise, hypothesis):
 
 
 if __name__ == '__main__':
-    premise = 'My mother does not like my girlfriend'
+    premise = 'My girlfriend is pretty and my mother likes her'
     hypothesis = 'My mother likes my girlfriend'
-    prediction('./saved_models/20_256.pt', premise, hypothesis)
+    prediction('./saved_models/10_256.pt', premise, hypothesis)

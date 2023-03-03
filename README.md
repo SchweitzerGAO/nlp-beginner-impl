@@ -16,7 +16,7 @@ training plot:
 
 ![](./lab1/train50.png)
 
-The accuracy on the corresponding [Kaggle comepetition](https://www.kaggle.com/competitions/sentiment-analysis-on-movie-reviews) is bad, just 19%
+*The accuracy on the corresponding [Kaggle comepetition](https://www.kaggle.com/competitions/sentiment-analysis-on-movie-reviews) is bad, just 19%*
 
 --- 
 
@@ -110,7 +110,42 @@ The best performance on the same competition in Lab 1 is 60.7%
 
 ## Lab 3
 
-To be done
+This is an implementation of the ESIM model of [this paper](https://arxiv.org/abs/1609.06038)
+
+Hyper parameters:
+
+```py
+batch_size = 256
+embed_size = 100
+sentence_length = 50
+hidden_size_lstm = 128
+hidden_size_dense = 128
+lr = 4e-4
+epoch = 20
+dropout = 0.5
+```
+
+I trained the model 30 epochs using SNLI dataset. But when tested, it seems 10 epochs is enough, more epochs could cause overfit. 
+
+The loss curve:
+
+![](./lab3/plots/30_loss.png)
+
+The accuracy & loss curve:
+
+![](./lab3/plots/30_acc.png)
+
+Test accuracies:
+
+| Epoch | Acc     |
+|:-----:|:-------:|
+| 10    | 85.50 % |
+| 20    | 83.69 % |
+| 30    | 83.16 % |
+
+Customized test is available in `prediction.py`, You can play with this.
+
+*Concatenating information produced by LSTM is useful. Attention is strong*
 
 ---
 
@@ -164,6 +199,6 @@ The perplexity of time step 14:
 
 ![](./lab5/plots/100_gru_14.png)
 
-I think it is better to use seq2seq. I will try if time allows.
+*I think it is better to use seq2seq. I will try if time allows.*
 
 *This is the end of lab 5*

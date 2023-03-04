@@ -146,6 +146,7 @@ Test accuracies:
 Customized test is available in `prediction.py`, You can play with this.
 
 *Concatenating information produced by LSTM is useful. Attention is strong*
+*This is the end of lab 3*
 
 ---
 

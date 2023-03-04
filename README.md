@@ -137,15 +137,17 @@ The accuracy & loss curve:
 
 Test accuracies:
 
-| Epoch | Acc     |
-|:-----:|:-------:|
-| 10    | 85.50 % |
-| 20    | 83.69 % |
-| 30    | 83.16 % |
+| Epoch                   | Acc     |
+|:-----------------------:|:-------:|
+| 0(Randomly initialized) | 32.88 % |
+| 10                      | 85.50 % |
+| 20                      | 83.69 % |
+| 30                      | 83.16 % |
 
 Customized test is available in `prediction.py`, You can play with this.
 
 *Concatenating information produced by LSTM is useful. Attention is strong*
+
 *This is the end of lab 3*
 
 ---

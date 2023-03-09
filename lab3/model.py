@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from preprocess import load_train_data
-from public.misc import TokenEmbedding
+from public.misc import PretrainedEmbedding
 
 
 def local_inference(A_bar, B_bar, E_row, E_col):
@@ -97,7 +97,7 @@ class ESIM(nn.Module):
         self.encoder = Encoder(len(vocab), embed_size, hidden_size_lstm)
         self.decoder = Decoder(hidden_size_lstm * 2 * 4, length, hidden_size_lstm,
                                hidden_size_dense, output_size, dropout=dropout)
-        wv = TokenEmbedding('../public/glove_6B_100d.pkl')
+        wv = PretrainedEmbedding('../public/glove_6B_100d.pkl')
         weight_embed = wv[vocab.idx_to_token]
         self.encoder.embed.weight.data.copy_(weight_embed)
         self.encoder.embed.weight.requires_grad = False

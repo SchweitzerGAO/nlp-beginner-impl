@@ -49,7 +49,7 @@ class Vocab:
         return [self.idx_to_token[index] for index in indices]
 
 
-class TokenEmbedding:
+class PretrainedEmbedding:
     def __init__(self, path):
         with open(path, 'rb') as f:
             self.word_vectors = pkl.load(f)
@@ -64,5 +64,5 @@ class TokenEmbedding:
 
 
 if __name__ == '__main__':
-    wv = TokenEmbedding('./glove_6B_100d.pkl')
+    wv = PretrainedEmbedding('./glove_6B_100d.pkl')
     pass

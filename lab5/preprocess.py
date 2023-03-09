@@ -32,14 +32,14 @@ def seq_data_iter_random(corpus, batch_size, num_steps):
     initial_indices = list(range(0, num_subseqs * num_steps, num_steps))
     random.shuffle(initial_indices)  # here shuffles the indices
 
-    def data(pos):
+    def get_data(pos):
         return corpus[pos: pos + num_steps]
 
     num_batches = num_subseqs // batch_size
     for i in range(0, batch_size * num_batches, batch_size):
         initial_indices_per_batch = initial_indices[i: i + batch_size]
-        X = [data(j) for j in initial_indices_per_batch]
-        y = [data(j + 1) for j in initial_indices_per_batch]
+        X = [get_data(j) for j in initial_indices_per_batch]
+        y = [get_data(j + 1) for j in initial_indices_per_batch]
         yield torch.tensor(X), torch.tensor(y)
 
 

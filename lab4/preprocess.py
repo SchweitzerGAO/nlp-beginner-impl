@@ -1,6 +1,11 @@
-def extract_data(path):
+
+
+"""
+extract useful data from the original dataset
+"""
+def extract_data(pathr, pathw):
     data = []
-    with open(path, 'r') as f:
+    with open(pathr, 'r') as f:
         keys = []
         values = []
         for i, line in enumerate(f):
@@ -18,22 +23,26 @@ def extract_data(path):
         values = sent_dict[1]
         for i in range(len(values)):
             now = values[i]
-            idx = i
-            if now != 'O':
+            if now[0] == 'I':
                 length = 1
-                while i+1 < len(values) and values[i+1] == now:
+                idx = i
+                while i + 1 < len(values) and values[i + 1] == now:
                     length += 1
                     i += 1
                 if length == 1:
                     values[idx] = 'S-' + now.split('-')[1]
                 else:
                     values[idx] = 'B-' + now.split('-')[1]
-                    if length > 2:
-                        values[idx + 1:idx + length - 1] = ['M-' + now.split('-')[1]] * (length - 1)
-                    values[idx+length-1] = 'E-' + now.split('-')[1]
+                    for j in range(idx + 1, idx + length - 1):
+                        values[j] = 'M-' + now.split('-')[1]
+                    values[idx + length - 1] = 'E-' + now.split('-')[1]
 
-    pass
+    with open(pathw, 'w') as f:
+        for sent in data:
+            for i in range(len(sent[0])):
+                f.write(sent[0][i] + ' ' + sent[1][i] + '\n')
+            f.write('\n')
 
 
 if __name__ == '__main__':
-    extract_data('./data/eng.train')
+    extract_data('./data/eng.testb', './data/testb.txt')

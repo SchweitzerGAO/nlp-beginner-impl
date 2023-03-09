@@ -48,7 +48,7 @@ class Encoder(nn.Module):
         embedded_B = self.embed(B.long())
         B_bar, _ = self.bi_lstm(embedded_B)
 
-        # local inference
+        # local inference (token2token attention)
         A_bar_T = A_bar.permute(0, 2, 1)
         E = torch.bmm(B_bar, A_bar_T).permute(0, 2, 1)
         E_row_softmax = F.softmax(E, dim=2)

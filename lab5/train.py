@@ -28,8 +28,8 @@ optimizer = optim.Adam(net.parameters(), lr=lr)
 net = net.to(device)
 
 
-def perplexity(loss, y):
-    return math.exp(loss * y.numel() / y.numel())
+def perplexity(loss):
+    return math.exp(loss)
 
 
 def grad_clipping(net, theta):
@@ -62,7 +62,7 @@ def train_epoch():
         loss.backward()
         grad_clipping(net, 1)
         optimizer.step()
-        perp += perplexity(loss, y)
+        perp += perplexity(loss)
     return perp / num_batch
 
 

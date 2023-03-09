@@ -39,7 +39,7 @@ def tokenize_word(lines):
     if isinstance(lines, list):
         return [line.split() for line in lines]
     else:
-        return lines.split()
+        return lines.lower().split()
 
 
 class SNLIDataset(Dataset.Dataset):

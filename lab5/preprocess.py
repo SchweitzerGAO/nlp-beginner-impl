@@ -6,7 +6,7 @@ from torch import nn
 
 
 def read_data():
-    with open('data.txt', 'r', encoding='utf-8') as f:
+    with open('data/data.txt', 'r', encoding='utf-8') as f:
         lines = f.readlines()
     return [re.sub('[^\u4e00-\u9fa5]+', '', line).strip().lower() for line in lines]
 

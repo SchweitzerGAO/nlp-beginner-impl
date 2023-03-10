@@ -1,11 +1,17 @@
+import torch
+import torch.utils.data.dataset as Dataset
+from torch.utils.data.dataloader import DataLoader
+import pickle as pkl
+from public.misc import Vocab
 
-
-"""
+'''
 extract useful data from the original dataset
-"""
-def extract_data(pathr, pathw):
+'''
+
+
+def extract_data(path_r, path_w):
     data = []
-    with open(pathr, 'r') as f:
+    with open(path_r, 'r') as f:
         keys = []
         values = []
         for i, line in enumerate(f):
@@ -37,12 +43,48 @@ def extract_data(pathr, pathw):
                         values[j] = 'M-' + now.split('-')[1]
                     values[idx + length - 1] = 'E-' + now.split('-')[1]
 
-    with open(pathw, 'w') as f:
+    with open(path_w, 'w') as f:
         for sent in data:
             for i in range(len(sent[0])):
                 f.write(sent[0][i] + ' ' + sent[1][i] + '\n')
             f.write('\n')
 
 
+def read_data(path):
+    sentences = []
+    labels = []
+    with open(path, 'r') as f:
+        sent = []
+        label = []
+        for line in f:
+            if line != '\n':
+                sent.append(line.split()[0])
+                label.append(line.split()[1])
+            else:
+                sentences.append(sent)
+                labels.append(label)
+                sent = []
+                label = []
+    return sentences, labels
+
+
+'''
+make the data digitalized 
+'''
+
+
+def flatten(tokens):
+    return [word for line in tokens for word in line]
+
+
+class CONLLDataset(Dataset):
+    def __init__(self, tokens_sentence, labels, vocab=None, label_token=None):
+        self.vocab = Vocab(tokens_sentence, min_freq=5) if vocab is None else vocab
+        self.labels = Vocab(labels, has_unk=False) if label_token is None else label_token
+
+
 if __name__ == '__main__':
-    extract_data('./data/eng.testb', './data/testb.txt')
+    sentences, labels = read_data('./data/train.txt')
+    tokens_sentence = flatten(sentences)
+    labels = flatten(labels)
+    pass

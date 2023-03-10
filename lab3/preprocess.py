@@ -66,7 +66,7 @@ class SNLIDataset(Dataset.Dataset):
         return (self.premises[idx], self.hypotheses[idx]), self.labels[idx]
 
 
-def load_train_data(batch_size=32, length=50, test=False, trunc_pad=True,num_workers=0):
+def load_train_data(batch_size=32, length=50, test=False, trunc_pad=True, num_workers=0):
     premises, hypotheses, labels = read_data('./snli_1.0/snli_1.0_train.txt', test=test)
     with open('./train_vocab.pkl', 'rb') as f:
         vocab = pkl.load(f)

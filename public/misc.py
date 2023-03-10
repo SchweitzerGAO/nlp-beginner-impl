@@ -15,9 +15,8 @@ def truncate_pad(sentence_idx, length, pad_idx):
         sentence_idx.append(pad_idx)
     return torch.Tensor(sentence_idx[:length])
 
-
 class Vocab:
-    def __init__(self, tokens=None, min_freq=0, reserved_tokens=None):
+    def __init__(self, tokens=None, min_freq=0, reserved_tokens=None, has_unk=True):
         self.unk = 0
         if tokens is None:
             tokens = []
@@ -26,7 +25,7 @@ class Vocab:
         counter = count_corpus(tokens)
         # descending by number of appearance
         self.token_sorted = sorted(counter.items(), key=lambda x: x[1], reverse=True)
-        self.idx_to_token = ['<unk>'] + reserved_tokens
+        self.idx_to_token = ['<unk>'] + reserved_tokens if has_unk else reserved_tokens
         self.token_to_idx = {token: idx for idx, token in enumerate(self.idx_to_token)}
         for token, freq in self.token_sorted:
             if freq < min_freq:

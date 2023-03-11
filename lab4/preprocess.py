@@ -106,7 +106,7 @@ class CONLLDataset(Dataset.Dataset):
 
     @staticmethod
     def _to_idx(vocab, tokens):
-        return [torch.tensor(vocab[token]) for token in tokens]
+        return [torch.LongTensor(vocab[token]) for token in tokens]
 
     def __len__(self):
         return len(self.sentences)

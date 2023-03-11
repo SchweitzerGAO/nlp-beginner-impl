@@ -1,4 +1,5 @@
 import torch
+from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
 import torch.utils.data.dataset as Dataset
 from torch.utils.data.dataloader import DataLoader
 import pickle as pkl
@@ -73,18 +74,56 @@ make the data digitalized
 '''
 
 
+def collate_fn(data):
+    sentences, labels = [d[0] for d in data], [d[1] for d in data]
+
+    sentences.sort(key=lambda x: len(x), reverse=True)
+    labels.sort(key=lambda x: len(x), reverse=True)
+
+    lengths_sentence = torch.tensor([s.size(0) for s in sentences])
+    length_label = torch.tensor([l.size(0) for l in labels])
+
+    sentences = pad_sequence(sentences, batch_first=True, padding_value=0)
+    sentences = pack_padded_sequence(sentences, lengths_sentence, batch_first=True)
+
+    labels = pad_sequence(labels, batch_first=True, padding_value=0)
+    # labels = pack_padded_sequence(labels, length_label, batch_first=True) # not necessary
+
+    return sentences, labels
+
+
 def flatten(tokens):
     return [word for line in tokens for word in line]
 
 
-class CONLLDataset(Dataset):
-    def __init__(self, tokens_sentence, labels, vocab=None, label_token=None):
+class CONLLDataset(Dataset.Dataset):
+    def __init__(self, sentences, labels, vocab=None, label_vocab=None):
+        tokens_sentence = flatten(sentences)
+        tokens_label = flatten(labels)
         self.vocab = Vocab(tokens_sentence, min_freq=5) if vocab is None else vocab
-        self.labels = Vocab(labels, has_unk=False) if label_token is None else label_token
+        self.label_vocab = Vocab(tokens_label, has_unk=False) if label_vocab is None else label_vocab
+        self.sentences = self._to_idx(self.vocab, sentences)
+        self.labels = self._to_idx(self.label_vocab, labels)
+
+    @staticmethod
+    def _to_idx(vocab, tokens):
+        return [torch.tensor(vocab[token]) for token in tokens]
+
+    def __len__(self):
+        return len(self.sentences)
+
+    def __getitem__(self, idx):
+        return self.sentences[idx], self.labels[idx]
 
 
 if __name__ == '__main__':
     sentences, labels = read_data('./data/train.txt')
-    tokens_sentence = flatten(sentences)
-    labels = flatten(labels)
-    pass
+    with open('./train_vocab.pkl', 'rb') as f:
+        vocab = pkl.load(f)
+    with open('./label_vocab.pkl', 'rb') as f:
+        label_vocab = pkl.load(f)
+
+    train_set = CONLLDataset(sentences, labels, vocab, label_vocab)
+    train_loader = DataLoader(train_set, batch_size=32, shuffle=True, collate_fn=collate_fn)
+    for X, y in train_loader:
+        pass

@@ -76,6 +76,9 @@ def load_train_data(batch_size=32, length=50, test=False, trunc_pad=True, num_wo
 
 if __name__ == '__main__':
     premises, hypotheses, labels = read_data('./snli_1.0/snli_1.0_train.txt')
-    train_set = SNLIDataset(premises, hypotheses, labels, length=50)
-    with open('./train_vocab.pkl', 'wb') as f:
-        pkl.dump(train_set.vocab, f)
+    with open('./train_vocab.pkl', 'rb') as f:
+        vocab = pkl.load(f)
+    train_set = SNLIDataset(premises, hypotheses, labels, length=50, vocab=vocab)
+
+    for (A, B), y in train_set:
+        pass

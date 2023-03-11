@@ -82,10 +82,10 @@ def collate_fn(data):
 
     lengths_sentence = torch.tensor([s.size(0) for s in sentences])
 
-    sentences = pad_sequence(sentences, batch_first=True, padding_value=0)
+    sentences = pad_sequence(sentences, batch_first=True)
     sentences = pack_padded_sequence(sentences, lengths_sentence, batch_first=True)
 
-    labels = pad_sequence(labels, batch_first=True, padding_value=0)
+    labels = pad_sequence(labels, batch_first=True)
     # labels = pack_padded_sequence(labels, length_label, batch_first=True) # not necessary
 
     return sentences, labels

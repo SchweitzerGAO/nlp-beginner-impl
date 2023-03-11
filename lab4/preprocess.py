@@ -91,38 +91,67 @@ def collate_fn(data):
     return sentences, labels
 
 
-def flatten(tokens):
+def flatten_sentence(tokens):
     return [word for line in tokens for word in line]
 
 
-class CONLLDataset(Dataset.Dataset):
-    def __init__(self, sentences, labels, vocab=None, label_vocab=None):
-        tokens_sentence = flatten(sentences)
-        tokens_label = flatten(labels)
-        self.vocab = Vocab(tokens_sentence, min_freq=5) if vocab is None else vocab
-        self.label_vocab = Vocab(tokens_label, has_unk=False) if label_vocab is None else label_vocab
-        self.sentences = self._to_idx(self.vocab, sentences)
-        self.labels = self._to_idx(self.label_vocab, labels)
+def tokenize_char(sentences):
+    ret = []
+    for line in sentences:
+        temp = []
+        for word in line:
+            temp.append(list(word))
+        ret.append(temp)
 
-    @staticmethod
-    def _to_idx(vocab, tokens):
-        return [torch.LongTensor(vocab[token]) for token in tokens]
+    return ret
+
+
+def flatten_char(tokens):
+    ret = []
+    for sent in tokens:
+        for words in sent:
+            for word in words:
+                ret += word
+    return ret
+
+
+class CONLLDataset(Dataset.Dataset):
+    def __init__(self, sentences, labels, char_vocab=None, sentence_vocab=None, label_vocab=None):
+        chars = tokenize_char(sentences)
+        tokens_sentence = flatten_sentence(sentences)
+        tokens_char = flatten_char(chars)
+        tokens_label = flatten_sentence(labels)
+
+        self.char_vocab = Vocab(tokens_char, min_freq=5) if char_vocab is None else char_vocab
+        self.sentence_vocab = Vocab(tokens_sentence, min_freq=5) if sentence_vocab is None else sentence_vocab
+        self.label_vocab = Vocab(tokens_label, has_unk=False) if label_vocab is None else label_vocab
+
+        self.chars = []
+        for sent in chars:
+            temp = []
+            for word in sent:
+                temp.append(torch.LongTensor(self.char_vocab[word]))
+            self.chars.append(temp)
+
+        self.sentences = [torch.LongTensor(self.sentence_vocab[token]) for token in sentences]
+        self.labels = [torch.LongTensor(self.label_vocab[token]) for token in labels]
 
     def __len__(self):
         return len(self.sentences)
 
     def __getitem__(self, idx):
-        return self.sentences[idx], self.labels[idx]
+        return self.chars[idx], self.sentences[idx], self.labels[idx]
 
 
 if __name__ == '__main__':
     sentences, labels = read_data('./data/train.txt')
-    with open('./train_vocab.pkl', 'rb') as f:
-        vocab = pkl.load(f)
-    with open('./label_vocab.pkl', 'rb') as f:
-        label_vocab = pkl.load(f)
 
-    train_set = CONLLDataset(sentences, labels, vocab, label_vocab)
-    train_loader = DataLoader(train_set, batch_size=32, shuffle=True, collate_fn=collate_fn)
-    for X, y in train_loader:
-        pass
+    chars = tokenize_char(sentences)
+    char_token = flatten_char(chars)
+
+    train_set = CONLLDataset(sentences, labels)
+    pass
+
+    # train_loader = DataLoader(train_set, batch_size=32, shuffle=True, collate_fn=collate_fn)
+    # for X, y in train_loader:
+    #     pass

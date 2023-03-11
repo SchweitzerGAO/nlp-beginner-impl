@@ -72,14 +72,14 @@ class BOW(FeatureExtractor):
                 self.idx[voc] = i
             # save data to .pkl file
             data = dict()
-            data['vocab'] = self.vocab
+            data['sentence_vocab'] = self.vocab
             data['idx'] = self.idx
             with open(data_path, 'wb') as wf:
                 pkl.dump(data, wf)
         elif mode == 'r':
             with open(data_path, 'rb') as rf:
                 data = pkl.load(rf)
-            self.vocab = data['vocab']
+            self.vocab = data['sentence_vocab']
             self.idx = data['idx']
 
     def choose_feature(self, max_features, mode, data_path):
@@ -90,14 +90,14 @@ class BOW(FeatureExtractor):
                 self.idx[voc] = i
             # save data to .pkl file
             data = dict()
-            data['vocab'] = self.vocab
+            data['sentence_vocab'] = self.vocab
             data['idx'] = self.idx
             with open(data_path, 'wb') as wf:
                 pkl.dump(data, wf)
         elif mode == 'r':
             with open(data_path, 'rb') as rf:
                 data = pkl.load(rf)
-            self.vocab = data['vocab']
+            self.vocab = data['sentence_vocab']
             self.idx = data['idx']
 
     def generate_feature(self, phrase, lamb=None):
@@ -157,14 +157,14 @@ class NGram(FeatureExtractor):
                 self.idx[voc] = i
             # save data to .pkl file
             data = dict()
-            data['vocab'] = self.vocab
+            data['sentence_vocab'] = self.vocab
             data['idx'] = self.idx
             with open(data_path, 'wb') as wf:
                 pkl.dump(data, wf)
         elif mode == 'r':
             with open(data_path, 'rb') as rf:
                 data = pkl.load(rf)
-            self.vocab = data['vocab']
+            self.vocab = data['sentence_vocab']
             self.idx = data['idx']
 
     def choose_feature(self, max_features, mode, data_path):
@@ -173,14 +173,14 @@ class NGram(FeatureExtractor):
             self.vocab = [tpl[0] for tpl in sli_count[:max_features]]
             # save data to .pkl file
             data = dict()
-            data['vocab'] = self.vocab
+            data['sentence_vocab'] = self.vocab
             data['idx'] = self.idx
             with open(data_path, 'wb') as wf:
                 pkl.dump(data, wf)
         elif mode == 'r':
             with open(data_path, 'rb') as rf:
                 data = pkl.load(rf)
-            self.vocab = data['vocab']
+            self.vocab = data['sentence_vocab']
             self.idx = data['idx']
 
     def generate_feature(self, phrase):
@@ -243,7 +243,7 @@ class TF_IDF(FeatureExtractor):
                 self.idf[word] = self._idf(word)
             # save data to .pkl file
             data = dict()
-            data['vocab'] = self.vocab
+            data['sentence_vocab'] = self.vocab
             data['idx'] = self.idx
             data['idf'] = self.idf
             with open(data_path, 'wb') as wf:
@@ -251,7 +251,7 @@ class TF_IDF(FeatureExtractor):
         elif mode == 'r':
             with open(data_path, 'rb') as rf:
                 data = pkl.load(rf)
-            self.vocab = data['vocab']
+            self.vocab = data['sentence_vocab']
             self.idx = data['idx']
             self.idf = data['idf']
 

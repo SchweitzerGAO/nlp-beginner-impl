@@ -74,7 +74,7 @@ make the data digitalized
 '''
 
 
-def collate_fn(data):
+def collate_fn_lstm(data):
     chars, sentences, labels = [d[0] for d in data], [d[1] for d in data], [d[2] for d in data]
     sentences.sort(key=lambda x: len(x), reverse=True)
     labels.sort(key=lambda x: len(x), reverse=True)
@@ -82,7 +82,7 @@ def collate_fn(data):
 
     # lengths_sentence = torch.tensor([s.size(0) for s in sentences])
 
-    chars = pad_sequence(chars,batch_first=True,padding_value=1)
+    chars = pad_sequence(chars, batch_first=True, padding_value=1)
 
     sentences = pad_sequence(sentences, batch_first=True, padding_value=1)
     # sentences = pack_padded_sequence(sentences, lengths_sentence, batch_first=True)
@@ -161,15 +161,28 @@ class CONLLDataset(Dataset.Dataset):
         return self.chars[idx], self.sentences[idx], self.labels[idx]
 
 
+def load_train_data(batch_size=32, num_workers=0):
+    sentences, labels = read_data('./data/train.txt')
+    with open('./char_vocab.pkl', 'rb') as f:
+        char_vocab = pkl.load(f)
+    with open('./sentence_vocab.pkl', 'rb') as f:
+        sentence_vocab = pkl.load(f)
+    with open('./label_vocab.pkl', 'rb') as f:
+        label_vocab = pkl.load(f)
+    train_set = CONLLDataset(sentences, labels, char_vocab, sentence_vocab, label_vocab)
+
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, collate_fn=collate_fn_lstm,
+                              num_workers=num_workers,drop_last=True)
+    return train_loader, (char_vocab, sentence_vocab, label_vocab)
+
+
 if __name__ == '__main__':
     sentences, labels = read_data('./data/train.txt')
-
-    chars = tokenize_char(sentences)
-    char_token = flatten_char(chars)
-
     train_set = CONLLDataset(sentences, labels)
+    with open('./label_vocab.pkl', 'wb') as f:
+        pkl.dump(train_set.label_vocab, f)
 
-    train_loader = DataLoader(train_set, batch_size=32, shuffle=True, collate_fn=collate_fn)
-
-    for (C, S), y in train_loader:
-        pass
+    # train_loader = DataLoader(train_set, batch_size=32, shuffle=True, collate_fn=collate_fn_lstm)
+    #
+    # for (C, S), y in train_loader:
+    #     pass

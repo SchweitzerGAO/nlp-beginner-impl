@@ -23,9 +23,16 @@ class BiLSTMEmbed(nn.Module):
 
 
 class CNNEmbed(nn.Module):
-    def __init__(self, char_vocab, sent_vocab, window_size=3, filters=30):
+    def __init__(self, char_vocab, sent_vocab, word_length, window_size=3, filters=30, embed_size=100):
         super().__init__()
-        self.char_embed =
+        self.char_embed = nn.Embedding(len(char_vocab), word_length)
+        self.dropout = nn.Dropout(0.5)
+        # self.cnn = nn.Conv1d(,filters,kernel_size=window_size)
+        self.max_pool = nn.MaxPool1d(word_length)
+        self.pretrained_embed = nn.Embedding(len(sent_vocab), embed_size)
+
+    def forward(self, C, S):
+        pass
 
 
 class Encoder(nn.Module):

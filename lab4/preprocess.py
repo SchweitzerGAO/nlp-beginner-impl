@@ -82,7 +82,7 @@ def collate_fn_lstm(data):
 
     # lengths_sentence = torch.tensor([s.size(0) for s in sentences])
 
-    chars = pad_sequence(chars, batch_first=True, padding_value=1)
+    chars = pad_sequence(chars, batch_first=True, padding_value=1.0)
 
     sentences = pad_sequence(sentences, batch_first=True, padding_value=1)
     # sentences = pack_padded_sequence(sentences, lengths_sentence, batch_first=True)
@@ -117,7 +117,7 @@ def flatten_char(tokens):
 
 
 class CONLLDataset(Dataset.Dataset):
-    def __init__(self, sentences, labels, char_vocab=None, sentence_vocab=None, label_vocab=None):
+    def __init__(self, sentences, labels, char_vocab=None, sentence_vocab=None, label_vocab=None, char_long=False):
         chars = tokenize_char(sentences)
         tokens_sentence = flatten_sentence(sentences)
         tokens_char = flatten_char(chars)
@@ -135,7 +135,8 @@ class CONLLDataset(Dataset.Dataset):
             temp_token = []
             temp_len = []
             for word in sent:
-                token = torch.LongTensor(self.char_vocab[word])
+                token = torch.FloatTensor(self.char_vocab[word]) if not char_long \
+                    else torch.LongTensor(self.char_vocab[word])
                 temp_token.append(token)
                 temp_len.append(token.size(0))
             self.chars.append(temp_token)
@@ -148,7 +149,7 @@ class CONLLDataset(Dataset.Dataset):
                 word = truncate_pad(list(word), max_chars, self.char_vocab['<pad>'])
                 temp.append(word)
             temp = [t.tolist() for t in temp]
-            padded_chars.append(torch.LongTensor(temp))
+            padded_chars.append(torch.tensor(temp))
 
         self.chars = padded_chars
         self.sentences = [torch.LongTensor(self.sentence_vocab[token]) for token in sentences]
@@ -172,17 +173,12 @@ def load_train_data(batch_size=32, num_workers=0):
     train_set = CONLLDataset(sentences, labels, char_vocab, sentence_vocab, label_vocab)
 
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, collate_fn=collate_fn_lstm,
-                              num_workers=num_workers,drop_last=True)
+                              num_workers=num_workers, drop_last=True)
     return train_loader, (char_vocab, sentence_vocab, label_vocab)
 
 
 if __name__ == '__main__':
-    sentences, labels = read_data('./data/train.txt')
-    train_set = CONLLDataset(sentences, labels)
-    with open('./label_vocab.pkl', 'wb') as f:
-        pkl.dump(train_set.label_vocab, f)
+    train_loader, vocabs = load_train_data()
 
-    # train_loader = DataLoader(train_set, batch_size=32, shuffle=True, collate_fn=collate_fn_lstm)
-    #
-    # for (C, S), y in train_loader:
-    #     pass
+    for (C, S), y in train_loader:
+        pass

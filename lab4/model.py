@@ -25,6 +25,7 @@ class BiLSTMEmbed(nn.Module):
 class CNNEmbed(nn.Module):
     def __init__(self, char_vocab, sent_vocab, window_size=3, filters=30):
         super().__init__()
+        self.char_embed =
 
 
 class Encoder(nn.Module):

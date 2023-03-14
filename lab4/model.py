@@ -14,25 +14,36 @@ class BiLSTMEmbed(nn.Module):
         # weight_embed = wv[sent_vocab.idx_to_token]
         # self.pretrained_embed.weight.data.copy_(weight_embed)
         # self.pretrained_embed.weight.requires_grad = False
+        self.embed_size = embed_size + (word_length // 2) * 2
 
     def forward(self, C, S):
         output, _ = self.bi_lstm(C)
         pretrained = self.pretrained_embed(S)
-        embedded = torch.cat((output, pretrained), dim=2)
+        embedded = torch.cat((pretrained, output), dim=2)
         return embedded
 
 
 class CNNEmbed(nn.Module):
-    def __init__(self, char_vocab, sent_vocab, word_length, window_size=3, filters=30, embed_size=100):
+    def __init__(self, char_vocab, sent_vocab, word_length, sent_length, window_size=3, embed_size=100):
         super().__init__()
         self.char_embed = nn.Embedding(len(char_vocab), word_length)
         self.dropout = nn.Dropout(0.5)
-        # self.cnn = nn.Conv1d(,filters,kernel_size=window_size)
-        self.max_pool = nn.MaxPool1d(word_length)
+        self.cnn = nn.Conv2d(sent_length, sent_length, kernel_size=window_size)
+        out_length = word_length - window_size + 1
+        self.max_pool = nn.MaxPool1d(out_length)
         self.pretrained_embed = nn.Embedding(len(sent_vocab), embed_size)
+        self.embed_size = embed_size + out_length
 
     def forward(self, C, S):
-        pass
+        output = self.char_embed(C.long())
+        output = self.cnn(self.dropout(output))
+        pool_list = []
+        for i in range(output.size(2)):
+            pool_list.append(self.max_pool(output[:, :, i, :]))
+        output = torch.stack(pool_list, dim=2).squeeze(3)
+        pretrained = self.pretrained_embed(S.long())
+        embedded = torch.cat((pretrained, output), dim=2)
+        return embedded
 
 
 class Encoder(nn.Module):
@@ -40,11 +51,9 @@ class Encoder(nn.Module):
 
 
 if __name__ == '__main__':
-    train_loader, vocabs = load_train_data()
-    word_length = 61
-    hidden_size_lstm_embed = 25
-    sent_vocab = vocabs[1]
-    lstm_embed = BiLSTMEmbed(word_length, sent_vocab)
-    for (C, S), y in train_loader:
-        vector = lstm_embed(C, S)
+    train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed='cnn')
+    lstm_embed = BiLSTMEmbed(max_chars, vocabs[1])
+    cnn_embed = CNNEmbed(vocabs[0], vocabs[1], max_chars, max_sent)
+    for C, S, y in train_loader:
+        vector = cnn_embed(C, S)
         pass

@@ -10,10 +10,6 @@ class BiLSTMEmbed(nn.Module):
         super().__init__()
         self.bi_lstm = nn.LSTM(word_length, word_length // 2, batch_first=True, bidirectional=True)
         self.pretrained_embed = nn.Embedding(len(sent_vocab), embed_size)
-        # wv = PretrainedEmbedding('../public/glove_6B_100d.pkl')
-        # weight_embed = wv[sent_vocab.idx_to_token]
-        # self.pretrained_embed.weight.data.copy_(weight_embed)
-        # self.pretrained_embed.weight.requires_grad = False
         self.embed_size = embed_size + (word_length // 2) * 2
 
     def forward(self, C, S):
@@ -47,13 +43,44 @@ class CNNEmbed(nn.Module):
 
 
 class Encoder(nn.Module):
-    pass
+    def __init__(self, vocabs, word_length, sent_length, hidden_size, char_embed='lstm', window_size=3,
+                 embed_size=100):
+        super().__init__()
+        if char_embed == 'lstm':
+            self.embed = BiLSTMEmbed(word_length, vocabs[1], embed_size)
+        elif char_embed == 'cnn':
+            self.embed = CNNEmbed(vocabs[0], vocabs[1], word_length, sent_length, window_size, embed_size)
+        else:
+            raise NotImplementedError
+        # wv = PretrainedEmbedding('../public/glove_6B_100d.pkl')
+        # weight_embed = wv[vocabs[1].idx_to_token]
+        # self.embed.pretrained_embed.weight.data.copy_(weight_embed)
+        # self.embed.pretrained_embed.weight.requires_grad = False
+        self.bi_lstm_enc = nn.LSTM(self.embed.embed_size, hidden_size // 2, batch_first=True, bidirectional=True)
+        self.hidden2tag = nn.Linear(hidden_size, len(vocabs[2]))
+
+    def forward(self, C, S):
+        embed = self.embed(C, S)
+        out, _ = self.bi_lstm_enc(embed)
+        out = self.hidden2tag(out)
+        return out
+
+
+class CRFDecoder(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+
+    def forward(self):
+        pass
 
 
 if __name__ == '__main__':
-    train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed='cnn')
-    lstm_embed = BiLSTMEmbed(max_chars, vocabs[1])
-    cnn_embed = CNNEmbed(vocabs[0], vocabs[1], max_chars, max_sent)
+    char_embed = 'cnn'
+    train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed=char_embed)
+    hidden_size = 128
+    encoder = Encoder(vocabs, max_chars, max_sent, hidden_size, char_embed=char_embed)
+
     for C, S, y in train_loader:
-        vector = cnn_embed(C, S)
+        encoded = encoder(C, S)
         pass

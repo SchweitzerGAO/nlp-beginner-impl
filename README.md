@@ -154,7 +154,43 @@ Customized test is available in `prediction.py`, You can play with this.
 
 ## Lab 4
 
-To be done
+**A note for viterbi algorithm in CRF**
+
+*Viterbi algorithm*<sup>[1]</sup>
+
+This is actually an *abstract* method for all **"shortest"-path problems** of *layered & structured* graph.
+
+The algorithm uses DP to find the 'shortest' path from the start to the end.
+
+consider this graph:
+
+![](./CRF-studying/1.PNG)
+
+If we want to get the shortest path length from S to E, we need to:
+
+- calculate **all** the distances from S to layer A
+
+- calculate and reserve the **shortest** paths and their start points(the precedent array) from layer A to layer B (i.e A->B{1,2,3,4}) **Just 4 paths reserved, which accelerates the algorithm compared with brute-force**
+
+- repeat the step from layer B to C
+
+- choose the shortest path from layer C to E
+
+- backtrack according to the precedent array to S, record every point
+
+- the reversion of the record in the previous step is the shortest path from S to E
+
+These are basic steps of viterbi algorithm
+
+All models using this algorithm just differs on the definition of **path length**
+
+*Viterbi algorithm in Structured Perceptron(SP) & CRF*<sup>[2]</sup>
+
+
+
+[1] https://zhuanlan.zhihu.com/p/40208596
+
+[2] Introduction to Natrual Language Processing, Chapters 5 and 6, Han He, 2019
 
 ---
 

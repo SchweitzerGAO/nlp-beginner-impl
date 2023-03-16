@@ -52,10 +52,10 @@ class Encoder(nn.Module):
             self.embed = CNNEmbed(vocabs[0], vocabs[1], word_length, sent_length, window_size, embed_size)
         else:
             raise NotImplementedError
-        # wv = PretrainedEmbedding('../public/glove_6B_100d.pkl')
-        # weight_embed = wv[vocabs[1].idx_to_token]
-        # self.embed.pretrained_embed.weight.data.copy_(weight_embed)
-        # self.embed.pretrained_embed.weight.requires_grad = False
+        wv = PretrainedEmbedding('../public/glove_6B_100d.pkl')
+        weight_embed = wv[vocabs[1].idx_to_token]
+        self.embed.pretrained_embed.weight.data.copy_(weight_embed)
+        self.embed.pretrained_embed.weight.requires_grad = False
         self.bi_lstm_enc = nn.LSTM(self.embed.embed_size, hidden_size // 2, batch_first=True, bidirectional=True)
         self.hidden2tag = nn.Linear(hidden_size, len(vocabs[2]))
 
@@ -70,6 +70,14 @@ class CRFDecoder(nn.Module):
     def __init__(self):
         super().__init__()
 
+    def _score(self):
+        pass
+
+    def _viterbi_forward(self):
+        pass
+
+    def _viterbi_backward(self):
+        pass
 
     def forward(self):
         pass

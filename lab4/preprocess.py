@@ -46,9 +46,11 @@ def extract_data(path_r, path_w):
 
     with open(path_w, 'w') as f:
         for sent in data:
+            f.write('<bos> O\n')
             for i in range(len(sent[0])):
-                f.write(sent[0][i] + ' ' + sent[1][i] + '\n')
-            f.write('\n')
+                if 'docstart' not in sent[0][i]:
+                    f.write(sent[0][i] + ' ' + sent[1][i] + '\n')
+            f.write('<eos> O\n\n')
 
 
 def read_data(path):
@@ -204,7 +206,8 @@ def load_train_data(batch_size=32, num_workers=0, char_embed='lstm'):
 
 
 if __name__ == '__main__':
-    train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed='cnn')
-
-    for C, S, y in train_loader:
-        pass
+    extract_data('./data/eng.testb', './data/testb.txt')
+    # train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed='cnn')
+    #
+    # for C, S, y in train_loader:
+    #     pass

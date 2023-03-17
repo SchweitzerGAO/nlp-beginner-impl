@@ -156,7 +156,7 @@ Customized test is available in `prediction.py`, You can play with this.
 
 **A note for viterbi algorithm in CRF**
 
-*Viterbi algorithm*<sup>[1]</sup>
+1. *Viterbi algorithm*<sup>[1]</sup>
 
 This is actually an *abstract* method for all **"shortest"-path problems** of *layered & structured* graph.
 
@@ -184,7 +184,9 @@ These are basic steps of viterbi algorithm
 
 All models using this algorithm just differs on the definition of **path length**
 
-*Viterbi algorithm in Structured Perceptron(SP) & CRF*<sup>[2]</sup>
+2. *Viterbi algorithm in Structured Perceptron(SP) & CRF*<sup>[2]</sup>
+
+
 
 
 

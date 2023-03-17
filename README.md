@@ -154,7 +154,7 @@ Customized test is available in `prediction.py`, You can play with this.
 
 ## Lab 4
 
-**A note for viterbi algorithm in CRF**
+**A note for viterbi algorithm & CRF**
 
 1. *Viterbi algorithm*<sup>[1]</sup>
 
@@ -184,7 +184,19 @@ These are basic steps of viterbi algorithm
 
 All models using this algorithm just differs on the definition of **path length**
 
-2. *Viterbi algorithm in Structured Perceptron(SP) & CRF*<sup>[2]</sup>
+2. *CRF & others*<sup>[2] [3]</sup>
+
+Essentially,  the layers in part 1 are instantialized as **all the possible states** in HMM, Structured Perceptron and CRF as shown below:
+
+![](./CRF-studying/2.PNG)
+
+We just need to calculate the **maximum** path length of the graph with a customized *score function*
+
+
+
+
+
+3. *Viterbi algorithm in CRF*<sup>[2]</sup>
 
 
 
@@ -193,6 +205,8 @@ All models using this algorithm just differs on the definition of **path length*
 [1] https://zhuanlan.zhihu.com/p/40208596
 
 [2] Introduction to Natrual Language Processing, Chapters 5 and 6, Han He, 2019
+
+[3] https://zhuanlan.zhihu.com/p/148813079
 
 ---
 

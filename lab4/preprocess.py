@@ -179,7 +179,8 @@ class CONLLDataset(Dataset.Dataset):
         self.max_sent = max([s.size(0) for s in self.sentences])
         self.labels = [torch.LongTensor(self.label_vocab[token]) for token in labels]
         if char_embed == 'cnn':
-            self.chars, self.sentences, self.labels = collate_fn_cnn(self.chars, self.sentences, self.labels, self.max_sent,
+            self.chars, self.sentences, self.labels = collate_fn_cnn(self.chars, self.sentences, self.labels,
+                                                                     self.max_sent,
                                                                      self.max_chars)
 
     def __len__(self):
@@ -187,6 +188,17 @@ class CONLLDataset(Dataset.Dataset):
 
     def __getitem__(self, idx):
         return self.chars[idx], self.sentences[idx], self.labels[idx]
+
+
+def write_vocab():
+    sentences, labels = read_data('./data/train.txt')
+    train_set = CONLLDataset(sentences, labels)
+    with open('./char_vocab.pkl', 'wb') as f:
+        pkl.dump(train_set.char_vocab, f)
+    with open('./sentence_vocab.pkl', 'wb') as f:
+        pkl.dump(train_set.sentence_vocab, f)
+    with open('./label_vocab.pkl', 'wb') as f:
+        pkl.dump(train_set.label_vocab, f)
 
 
 def load_train_data(batch_size=32, num_workers=0, char_embed='lstm'):
@@ -206,8 +218,8 @@ def load_train_data(batch_size=32, num_workers=0, char_embed='lstm'):
 
 
 if __name__ == '__main__':
-    extract_data('./data/eng.testb', './data/testb.txt')
-    # train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed='cnn')
-    #
-    # for C, S, y in train_loader:
-    #     pass
+    # extract_data('./data/eng.testb', './data/testb.txt')
+    # write_vocab()
+    train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed='lstm')
+    for C, S, y in train_loader:
+        pass

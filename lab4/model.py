@@ -79,7 +79,7 @@ class CRFDecoder(nn.Module):
     def _viterbi_backward(self):
         pass
 
-    def forward(self):
+    def forward(self, X):
         pass
 
 

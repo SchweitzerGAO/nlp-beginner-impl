@@ -184,29 +184,74 @@ These are basic steps of viterbi algorithm
 
 All models using this algorithm just differs on the definition of **path length**
 
-2. *CRF & others*<sup>[2] [3]</sup>
+2. *CRF*<sup>[2]</sup>
+- Undirected Graph Model(General CRF)
 
-Essentially,  the layers in part 1 are instantialized as **all the possible states** in HMM, Structured Perceptron and CRF as shown below:
+It models a joint distribution of multi-dimensional variants as the production of a series    of **maximum clique**:
 
-![](./CRF-studying/2.PNG)
+$$
+p(\mathbf x,\mathbf y) = \frac{1}{Z}\prod_a \mathbf{\Psi}_a(\mathbf x_a,\mathbf y_a) 
+$$
+
+where:
+
+$Z=\sum_{\mathbf x,\mathbf y}\prod_a \mathbf \Psi_a(\mathbf x_a,\mathbf y_a)$ : normalization function
+
+$\mathbf \Psi_a$: the $a_{th}$ factor node function
+
+In ML $\mathbf \Psi_a$ is usually an exponential function:
+
+$$
+\mathbf \Psi_a = \exp{\sum_kw_{ak}f_{ak}(\mathbf x_a,\mathbf y_a)}
+$$
+
+For a discriminative model, $Z(\mathbf x) = \sum_{\mathbf y}\prod_a \mathbf \Psi_a(\mathbf x_a,\mathbf y_a)$ for every $\mathbf x$
+
+and:
+
+$$
+p(\mathbf y|\mathbf x) = \frac{1}{Z(\mathbf x)}\prod_a \mathbf{\Psi}_a(\mathbf x_a,\mathbf y_a) 
+$$
+
+is the general form of CRF.
+
+- Linear Chain CRF (CRF in sequence tagging)
+
+When applied to sequence tagging, CRF is specialized to Linear Chain CRF, which is able to handle multiple features with each feature has a factor connected to the hidden state and neighbouring states are also connected by factors.
+
+factors using $\mathbf x_t$ and $y_t$ are called **state features (alike emit matrix in HMM)** and factors using $y_t$ and $\ y_{t-1}$ are called **transition features(alike transition matrix in HMM)**
+
+The definition of Linear Chain CRF is (vectorized):
+
+$$
+p(\mathbf y|\mathbf x) = \frac{1}{Z(\mathbf x)}\exp(\sum_{t=1}^T\mathbf w\cdot\phi(y_{t-1},y_t,\mathbf x_t))
+$$
+
+where:
+
+$\mathbf w$: weights of each features
+
+$\phi$: features
+
+It is like the feature and score functions in SP(Structured Perceptron)
+
+3. *Viterbi algorithm in CRF*<sup>[2] [3]</sup>
+
+Essentially, the layers in part 1 are instantialized as **all the possible states** in HMM, Structured Perceptron and CRF as shown below:
+
+![](./CRF-studying/2.png)
 
 We just need to calculate the **maximum** path length of the graph with a customized *score function*
-
-
-
-
-
-3. *Viterbi algorithm in CRF*<sup>[2]</sup>
-
-
-
-
 
 [1] https://zhuanlan.zhihu.com/p/40208596
 
 [2] Introduction to Natrual Language Processing, Chapters 5 and 6, Han He, 2019
 
 [3] https://zhuanlan.zhihu.com/p/148813079
+
+**Implementation log**
+
+
 
 ---
 

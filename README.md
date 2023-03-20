@@ -251,8 +251,6 @@ We just need to calculate the **maximum** path length of the graph with a custom
 
 **Implementation log**
 
-
-
 ---
 
 ## Lab 5

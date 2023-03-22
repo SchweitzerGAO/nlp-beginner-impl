@@ -46,11 +46,11 @@ def extract_data(path_r, path_w):
 
     with open(path_w, 'w') as f:
         for sent in data:
-            f.write('<bos> O\n')
+            f.write('<bos> B\n')  # start of sentence
             for i in range(len(sent[0])):
                 if 'docstart' not in sent[0][i]:
                     f.write(sent[0][i] + ' ' + sent[1][i] + '\n')
-            f.write('<eos> O\n\n')
+            f.write('<eos> E\n\n')  # end of sentence
 
 
 def read_data(path):

@@ -5,6 +5,17 @@ from preprocess import load_train_data
 from public.misc import PretrainedEmbedding
 
 
+def argmax(data):
+    _, max_idx = torch.max(data)
+    return max_idx.item()
+
+
+def log_sum_exp(data):
+    max_score = data[0, argmax(data)]
+    max_score_board = max_score.view(1, -1).expand(1, data.size(1))
+    return max_score + torch.log(torch.sum(torch.exp(data - max_score_board)))
+
+
 class BiLSTMEmbed(nn.Module):
     def __init__(self, word_length, sent_vocab, embed_size=100):
         super().__init__()
@@ -67,13 +78,28 @@ class Encoder(nn.Module):
 
 
 class CRFDecoder(nn.Module):
-    def __init__(self):
+    def __init__(self, label_vocab):
         super().__init__()
+        self.labels = label_vocab
+        # transition[i,j] is the score of transition from i to j (different to the implementation in
+        # https://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html#sphx-glr-beginner-nlp-advanced-tutorial-py)
+        self.transition = nn.Parameter(torch.randn(len(self.labels), len(self.labels)))
+        self.transition.data[label_vocab['E'], :] = -10000  # never transit from the end of a sentence.
+        self.transition.data[:, label_vocab['B']] = -10000  # never transit to the beginning of a sentence
+
+    def _viterbi_forward(self, X):
+        init_alpha = torch.full((1, len(self.labels)), -10000.)
+        init_alpha[0][self.labels['B']] = 0.
+        forward_var = init_alpha
+        for x in X:
+            alpha_t = []
+            for next_tag in range(len(self.labels)):
+                emit = x[next_tag].view(1, -1).expand(1, len(self.labels))
+                trans = self.transition[:, next_tag].view(1, -1)
+                next_var = forward_var + trans + emit
+                alpha_t.append(log_sum_exp(next_var).view(1))
 
     def _score(self):
-        pass
-
-    def _viterbi_forward(self):
         pass
 
     def _viterbi_backward(self):
@@ -84,7 +110,7 @@ class CRFDecoder(nn.Module):
 
 
 if __name__ == '__main__':
-    char_embed = 'cnn'
+    char_embed = 'lstm'
     train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed=char_embed)
     hidden_size = 128
     encoder = Encoder(vocabs, max_chars, max_sent, hidden_size, char_embed=char_embed)

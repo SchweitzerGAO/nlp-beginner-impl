@@ -91,13 +91,14 @@ class CRFDecoder(nn.Module):
         init_alpha = torch.full((1, len(self.labels)), -10000.)
         init_alpha[0][self.labels['B']] = 0.
         forward_var = init_alpha
-        for x in X:
-            alpha_t = []
-            for next_tag in range(len(self.labels)):
-                emit = x[next_tag].view(1, -1).expand(1, len(self.labels))
-                trans = self.transition[:, next_tag].view(1, -1)
-                next_var = forward_var + trans + emit
-                alpha_t.append(log_sum_exp(next_var).view(1))
+        for sent in X:
+            for word in sent:
+                alpha_t = []
+                for next_tag in range(len(self.labels)):
+                    emit = word[next_tag].view(1, -1).expand(1, len(self.labels))
+                    trans = self.transition[:, next_tag].view(1, -1)
+                    next_var = forward_var + trans + emit
+                    alpha_t.append(log_sum_exp(next_var).view(1))
 
     def _score(self):
         pass
@@ -117,4 +118,6 @@ if __name__ == '__main__':
 
     for C, S, y in train_loader:
         encoded = encoder(C, S)
-        pass
+        for x in encoded:
+            for w in x:
+                pass

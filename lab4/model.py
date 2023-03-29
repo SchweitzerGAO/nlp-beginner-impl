@@ -117,8 +117,37 @@ class CRFDecoder(nn.Module):
             scores.append(score)
         return torch.cat(scores).view(1, -1)
 
-    def viterbi_decode(self):
-        pass
+    def _viterbi_decode(self, batch_enc_output):
+        best_paths = []
+        path_scores = []
+        for sent in batch_enc_output:
+            back_tracer = []
+            init_viterbi = torch.full((1, len(self.labels)), -10000.)
+            init_viterbi[0, self.labels['<bos>']] = 0.
+            forward_var = init_viterbi
+            for word in sent:
+                best_ptr_t = []
+                viterbi_t = []
+                for next_tag in range(len(self.labels)):
+                    next_t = forward_var + self.transition[:, next_tag].view(1, -1)
+                    best_tag = argmax(next_t)
+                    best_ptr_t.append(best_tag)
+                    viterbi_t.append(next_t[0, best_tag].view(1))
+                forward_var = (torch.cat(viterbi_t) + word).view(1, -1)
+                back_tracer.append(best_ptr_t)
+            terminal_var = forward_var + self.transition[:, self.labels['<eos>']].view(1, -1)
+            best_tag = argmax(terminal_var)
+            path_scores.append(terminal_var[0, best_tag].view(1))
+
+            best_path = [best_tag]
+            for best_ptr_t in reversed(back_tracer):
+                best_tag = best_ptr_t[best_tag]
+                best_path.append(best_tag)
+            start = best_path.pop()
+            assert start == self.labels['<bos>']
+            best_path.reverse()
+            best_paths.append(torch.tensor(best_path))
+        return torch.cat(path_scores), torch.cat(best_paths).view(-1, best_paths[0].size(0))
 
     def neg_log_likelihood(self, batch_enc_output, y):
         vf = self._forward_alg(batch_enc_output)
@@ -126,7 +155,8 @@ class CRFDecoder(nn.Module):
         return torch.mean(vf - score)
 
     def forward(self, X):
-        pass
+        scores, best_paths = self._viterbi_decode(X)
+        return scores, best_paths
 
 
 if __name__ == '__main__':
@@ -140,6 +170,5 @@ if __name__ == '__main__':
         encoded = encoder(C, S)
         # vf = decoder.forward_alg(encoded)
         # scores = decoder.score(encoded, y)
-        loss = decoder.neg_log_likelihood(encoded, y)
-        loss.backward()
+        _, best_paths = decoder(encoded)
         pass

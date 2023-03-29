@@ -15,9 +15,10 @@ def truncate_pad(sentence_idx, length, pad_idx):
         sentence_idx.append(pad_idx)
     return torch.tensor(sentence_idx[:length])
 
+
 class Vocab:
     def __init__(self, tokens=None, min_freq=0, reserved_tokens=None, has_unk=True):
-        self.unk = 0
+        self.unk = 0 if has_unk else None
         if tokens is None:
             tokens = []
         if reserved_tokens is None:

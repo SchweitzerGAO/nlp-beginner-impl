@@ -88,7 +88,7 @@ class TextRNN(nn.Module):
 if __name__ == '__main__':
     vec_dim = 5
     dataset = TextSentimentDataset('../lab1/data/train.tsv', './word_vectors/random.pkl', vec_dim)
-    net = TextRNN(vec_dim, 256, dataset.num_cls,bi_dir=True)
+    net = TextRNN(vec_dim, 256, dataset.num_cls, bi_dir=True)
     state = net.init_state(batch_size=64, device='cpu')
     train_set, test_set = train_test_split(dataset)
     train_loader = DataLoader(train_set, batch_size=64, shuffle=True)

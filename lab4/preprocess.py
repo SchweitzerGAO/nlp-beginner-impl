@@ -46,11 +46,11 @@ def extract_data(path_r, path_w):
 
     with open(path_w, 'w') as f:
         for sent in data:
-            f.write('<bos> B\n')  # start of sentence
+            # f.write('<bos> B\n')  # start of sentence
             for i in range(len(sent[0])):
                 if 'docstart' not in sent[0][i]:
                     f.write(sent[0][i] + ' ' + sent[1][i] + '\n')
-            f.write('<eos> E\n\n')  # end of sentence
+            f.write('\n')  # end of sentence
 
 
 def read_data(path):
@@ -64,8 +64,9 @@ def read_data(path):
                 sent.append(line.split()[0])
                 label.append(line.split()[1])
             else:
-                sentences.append(sent)
-                labels.append(label)
+                if sent and label:
+                    sentences.append(sent)
+                    labels.append(label)
                 sent = []
                 label = []
     return sentences, labels
@@ -151,7 +152,8 @@ class CONLLDataset(Dataset.Dataset):
                                 reserved_tokens=['<pad>']) if char_vocab is None else char_vocab
         self.sentence_vocab = Vocab(tokens_sentence, min_freq=5,
                                     reserved_tokens=['<pad>']) if sentence_vocab is None else sentence_vocab
-        self.label_vocab = Vocab(tokens_label, has_unk=False) if label_vocab is None else label_vocab
+        self.label_vocab = Vocab(tokens_label, has_unk=False,
+                                 reserved_tokens=['<pad>','<bos>', '<eos>']) if label_vocab is None else label_vocab
 
         self.chars = []
         size_chars = []
@@ -219,7 +221,7 @@ def load_train_data(batch_size=32, num_workers=0, char_embed='lstm'):
 
 if __name__ == '__main__':
     # extract_data('./data/eng.testb', './data/testb.txt')
-    # write_vocab()
+    write_vocab()
     train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed='lstm')
     for C, S, y in train_loader:
         pass

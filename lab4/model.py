@@ -6,7 +6,7 @@ from public.misc import PretrainedEmbedding
 
 
 def argmax(data):
-    _, max_idx = torch.max(data)
+    _, max_idx = torch.max(data, dim=1)
     return max_idx.item()
 
 
@@ -81,17 +81,18 @@ class CRFDecoder(nn.Module):
     def __init__(self, label_vocab):
         super().__init__()
         self.labels = label_vocab
-        # transition[i,j] is the score of transition from i to j (different to the implementation in
+        # transition[i,j] is the score of transition from j to i (different to the implementation in
         # https://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html#sphx-glr-beginner-nlp-advanced-tutorial-py)
         self.transition = nn.Parameter(torch.randn(len(self.labels), len(self.labels)))
-        self.transition.data[label_vocab['E'], :] = -10000  # never transit from the end of a sentence.
-        self.transition.data[:, label_vocab['B']] = -10000  # never transit to the beginning of a sentence
+        self.transition.data[label_vocab['<eos>'], :] = -10000  # never transit from the end of a sentence.
+        self.transition.data[:, label_vocab['<bos>']] = -10000  # never transit to the beginning of a sentence
 
-    def _viterbi_forward(self, X):
-        init_alpha = torch.full((1, len(self.labels)), -10000.)
-        init_alpha[0][self.labels['B']] = 0.
-        forward_var = init_alpha
-        for sent in X:
+    def _forward_alg(self, batch_enc_output):
+        result = []
+        for sent in batch_enc_output:
+            init_alpha = torch.full((1, len(self.labels)), -10000.)
+            init_alpha[0, self.labels['<bos>']] = 0.
+            forward_var = init_alpha
             for word in sent:
                 alpha_t = []
                 for next_tag in range(len(self.labels)):
@@ -99,12 +100,30 @@ class CRFDecoder(nn.Module):
                     trans = self.transition[:, next_tag].view(1, -1)
                     next_var = forward_var + trans + emit
                     alpha_t.append(log_sum_exp(next_var).view(1))
+                    # alpha_t.append(next_var.view(1))
+                forward_var = torch.cat(alpha_t).view(1, -1)
+            terminal_var = forward_var + self.transition[:, self.labels['<eos>']]
+            result.append(log_sum_exp(terminal_var).view(1))
+            # result.append(terminal_var.view(1))
+        return torch.cat(result).view(1, -1)
 
-    def _score(self):
+    def _score(self, batch_enc_output, y):
+        scores = []
+        for i, sent in enumerate(batch_enc_output):
+            score = torch.zeros(1)
+            for j, word in enumerate(sent[0:-1]):
+                score += self.transition[y[i, j], y[i, j + 1]] + word[y[i, j + 1]]
+            score += self.transition[y[i, -1], self.labels['<eos>']]
+            scores.append(score)
+        return torch.cat(scores).view(1, -1)
+
+    def viterbi_decode(self):
         pass
 
-    def _viterbi_backward(self):
-        pass
+    def neg_log_likelihood(self, batch_enc_output, y):
+        vf = self._forward_alg(batch_enc_output)
+        score = self._score(batch_enc_output, y)
+        return torch.mean(vf - score)
 
     def forward(self, X):
         pass
@@ -115,9 +134,12 @@ if __name__ == '__main__':
     train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed=char_embed)
     hidden_size = 128
     encoder = Encoder(vocabs, max_chars, max_sent, hidden_size, char_embed=char_embed)
+    decoder = CRFDecoder(vocabs[2])
 
     for C, S, y in train_loader:
         encoded = encoder(C, S)
-        for x in encoded:
-            for w in x:
-                pass
+        # vf = decoder.forward_alg(encoded)
+        # scores = decoder.score(encoded, y)
+        loss = decoder.neg_log_likelihood(encoded, y)
+        loss.backward()
+        pass

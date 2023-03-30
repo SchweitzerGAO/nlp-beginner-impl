@@ -10,10 +10,23 @@ def count_corpus(tokens):
     return collections.Counter(tokens)
 
 
+# pad or truncate the input sentence(s)
 def truncate_pad(sentence_idx, length, pad_idx):
     while len(sentence_idx) < length:
         sentence_idx.append(pad_idx)
     return torch.tensor(sentence_idx[:length])
+
+
+# gradient clipping
+def grad_clipping(net, theta):
+    if isinstance(net, nn.Module):
+        params = [p for p in net.parameters() if p.requires_grad]
+    else:
+        params = net.params
+    norm = torch.sqrt(sum(torch.sum((p.grad ** 2)) for p in params))
+    if norm > theta:
+        for param in params:
+            param.grad[:] *= theta / norm
 
 
 class Vocab:

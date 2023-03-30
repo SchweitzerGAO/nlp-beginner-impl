@@ -4,6 +4,7 @@ from torch import nn, optim
 from model import TextGenerator
 from preprocess import load_poems
 from matplotlib import pyplot as plt
+from public.misc import grad_clipping
 
 '''
 hyper-parameters
@@ -30,17 +31,6 @@ net = net.to(device)
 
 def perplexity(loss):
     return math.exp(loss)
-
-
-def grad_clipping(net, theta):
-    if isinstance(net, nn.Module):
-        params = [p for p in net.parameters() if p.requires_grad]
-    else:
-        params = net.params
-    norm = torch.sqrt(sum(torch.sum((p.grad ** 2)) for p in params))
-    if norm > theta:
-        for param in params:
-            param.grad[:] *= theta / norm
 
 
 def train_epoch():

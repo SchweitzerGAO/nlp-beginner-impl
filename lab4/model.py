@@ -69,11 +69,12 @@ class Encoder(nn.Module):
         self.embed.pretrained_embed.weight.requires_grad = False
         self.bi_lstm_enc = nn.LSTM(self.embed.embed_size, hidden_size // 2, batch_first=True, bidirectional=True)
         self.hidden2tag = nn.Linear(hidden_size, len(vocabs[2]))
+        self.dropout = nn.Dropout(0.5)
 
     def forward(self, C, S):
         embed = self.embed(C, S)
         out, _ = self.bi_lstm_enc(embed)
-        out = self.hidden2tag(out)
+        out = self.hidden2tag(self.dropout(out))
         return out
 
 
@@ -157,6 +158,18 @@ class CRFDecoder(nn.Module):
     def forward(self, X):
         scores, best_paths = self._viterbi_decode(X)
         return scores, best_paths
+
+
+class SeqTagger(nn.Module):
+    def __init__(self, vocabs, max_chars, max_sent, hidden_size, char_embed):
+        super().__init__()
+        self.encoder = Encoder(vocabs, max_chars, max_sent, hidden_size, char_embed=char_embed)
+        self.decoder = CRFDecoder(vocabs[2])
+
+    def forward(self, C, S):
+        encoded = self.encoder(C,S)
+        _, best_paths = self.decoder(encoded)
+        return encoded, best_paths
 
 
 if __name__ == '__main__':

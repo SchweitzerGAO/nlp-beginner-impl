@@ -4,6 +4,9 @@ import torch.nn as nn
 from preprocess import load_train_data
 from public.misc import PretrainedEmbedding
 
+# gpu accessibility
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+
 
 def argmax(data):
     _, max_idx = torch.max(data, dim=1)
@@ -91,7 +94,7 @@ class CRFDecoder(nn.Module):
     def _forward_alg(self, batch_enc_output):
         result = []
         for sent in batch_enc_output:
-            init_alpha = torch.full((1, len(self.labels)), -10000.)
+            init_alpha = torch.full((1, len(self.labels)), -10000.).to(device)
             init_alpha[0, self.labels['<bos>']] = 0.
             forward_var = init_alpha
             for word in sent:
@@ -111,7 +114,7 @@ class CRFDecoder(nn.Module):
     def _score(self, batch_enc_output, y):
         scores = []
         for i, sent in enumerate(batch_enc_output):
-            score = torch.zeros(1)
+            score = torch.zeros(1).to(device)
             for j, word in enumerate(sent[0:-1]):
                 score += self.transition[y[i, j], y[i, j + 1]] + word[y[i, j + 1]]
             score += self.transition[y[i, -1], self.labels['<eos>']]
@@ -123,7 +126,7 @@ class CRFDecoder(nn.Module):
         path_scores = []
         for sent in batch_enc_output:
             back_tracer = []
-            init_viterbi = torch.full((1, len(self.labels)), -10000.)
+            init_viterbi = torch.full((1, len(self.labels)), -10000.).to(device)
             init_viterbi[0, self.labels['<bos>']] = 0.
             forward_var = init_viterbi
             for word in sent:
@@ -183,5 +186,6 @@ if __name__ == '__main__':
         encoded = encoder(C, S)
         # vf = decoder.forward_alg(encoded)
         # scores = decoder.score(encoded, y)
+        loss = decoder.neg_log_likelihood(encoded, y)
         _, best_paths = decoder(encoded)
         pass

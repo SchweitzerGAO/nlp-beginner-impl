@@ -1,6 +1,7 @@
 import collections
 import torch
 import pickle as pkl
+import torch.nn as nn
 
 
 # count the number that each character appears

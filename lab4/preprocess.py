@@ -153,7 +153,7 @@ class CONLLDataset(Dataset.Dataset):
         self.sentence_vocab = Vocab(tokens_sentence, min_freq=5,
                                     reserved_tokens=['<pad>']) if sentence_vocab is None else sentence_vocab
         self.label_vocab = Vocab(tokens_label, has_unk=False,
-                                 reserved_tokens=['<pad>','<bos>', '<eos>']) if label_vocab is None else label_vocab
+                                 reserved_tokens=['<pad>', '<bos>', '<eos>']) if label_vocab is None else label_vocab
 
         self.chars = []
         size_chars = []

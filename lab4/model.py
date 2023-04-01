@@ -113,9 +113,11 @@ class CRFDecoder(nn.Module):
 
     def _score(self, batch_enc_output, y):
         scores = []
+        starts = torch.full((y.size(0), 1), self.labels['<bos>']).to(device)
+        y = torch.cat([starts, y], dim=1)
         for i, sent in enumerate(batch_enc_output):
             score = torch.zeros(1).to(device)
-            for j, word in enumerate(sent[0:-1]):
+            for j, word in enumerate(sent):
                 score += self.transition[y[i, j], y[i, j + 1]] + word[y[i, j + 1]]
             score += self.transition[y[i, -1], self.labels['<eos>']]
             scores.append(score)
@@ -170,7 +172,7 @@ class SeqTagger(nn.Module):
         self.decoder = CRFDecoder(vocabs[2])
 
     def forward(self, C, S):
-        encoded = self.encoder(C,S)
+        encoded = self.encoder(C, S)
         _, best_paths = self.decoder(encoded)
         return encoded, best_paths
 

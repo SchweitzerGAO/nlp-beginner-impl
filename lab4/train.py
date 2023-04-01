@@ -56,7 +56,7 @@ def macro_ave_P_R_F1(y, y_hat):
                 TP_TN_FN[tag[i].item()][0] += 1
             else:
                 if tag_hat_idx in tag:
-                    TP_TN_FN[tag_hat_idx.item()][2] += 1
+                    TP_TN_FN[tag[i].item()][2] += 1
                     TP_TN_FN[tag_hat_idx.item()][1] += 1
                 else:
                     TP_TN_FN[tag[i].item()][2] += 1

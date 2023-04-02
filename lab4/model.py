@@ -71,13 +71,14 @@ class Encoder(nn.Module):
         self.embed.pretrained_embed.weight.data.copy_(weight_embed)
         self.embed.pretrained_embed.weight.requires_grad = False
         self.bi_lstm_enc = nn.LSTM(self.embed.embed_size, hidden_size // 2, batch_first=True, bidirectional=True)
-        self.hidden2tag = nn.Linear(hidden_size, len(vocabs[2]))
-        self.dropout = nn.Dropout(0.5)
+        self.fc1 = nn.Linear(hidden_size, 256)
+        self.fc2 = nn.Linear(256, len(vocabs[2]))
+        # self.dropout = nn.Dropout(0.5)
 
     def forward(self, C, S):
         embed = self.embed(C, S)
         out, _ = self.bi_lstm_enc(embed)
-        out = self.hidden2tag(self.dropout(out))
+        out = self.fc2(self.fc1(out))
         return out
 
 
@@ -135,7 +136,7 @@ class CRFDecoder(nn.Module):
                 best_ptr_t = []
                 viterbi_t = []
                 for next_tag in range(len(self.labels)):
-                    next_t = forward_var + self.transition[:, next_tag].view(1, -1)
+                    next_t = forward_var + self.transition[:, next_tag]
                     best_tag = argmax(next_t)
                     best_ptr_t.append(best_tag)
                     viterbi_t.append(next_t[0, best_tag].view(1))
@@ -180,7 +181,7 @@ class SeqTagger(nn.Module):
 if __name__ == '__main__':
     char_embed = 'lstm'
     train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed=char_embed)
-    hidden_size = 128
+    hidden_size = 100
     encoder = Encoder(vocabs, max_chars, max_sent, hidden_size, char_embed=char_embed)
     decoder = CRFDecoder(vocabs[2])
 
@@ -189,5 +190,5 @@ if __name__ == '__main__':
         # vf = decoder.forward_alg(encoded)
         # scores = decoder.score(encoded, y)
         loss = decoder.neg_log_likelihood(encoded, y)
-        _, best_paths = decoder(encoded)
+        scores, best_paths = decoder(encoded)
         pass

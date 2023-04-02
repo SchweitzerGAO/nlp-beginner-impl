@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.optim as optim
 from matplotlib import pyplot as plt
 
@@ -67,8 +66,8 @@ def macro_ave_P_R_F1(y, y_hat):
                            if TP_TN_FN[k][0] + TP_TN_FN[k][1] != 0 else 0)
             temp_R_sum += (TP_TN_FN[k][0] / (TP_TN_FN[k][0] + TP_TN_FN[k][2])
                            if TP_TN_FN[k][0] + TP_TN_FN[k][2] != 0 else 0)
-        P_sum += (temp_P_sum / len(vocabs[2]))
-        R_sum += (temp_R_sum / len(vocabs[2]))
+        P_sum += (temp_P_sum / len(TP_TN_FN))
+        R_sum += (temp_R_sum / len(TP_TN_FN))
         F1_sum += ((2. * P_sum * R_sum) / (P_sum + R_sum) if P_sum + R_sum != 0 else 0)
 
     return P_sum / batch_size, R_sum / batch_size, F1_sum / batch_size

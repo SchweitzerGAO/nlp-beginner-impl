@@ -85,9 +85,9 @@ def collate_fn_lstm(data):
 
     # lengths_sentence = torch.tensor([s.size(0) for s in sentences])
 
-    chars = pad_sequence(chars, batch_first=True, padding_value=1.0)
+    chars = pad_sequence(chars, batch_first=True)
 
-    sentences = pad_sequence(sentences, batch_first=True, padding_value=1)
+    sentences = pad_sequence(sentences, batch_first=True)
     # sentences = pack_padded_sequence(sentences, lengths_sentence, batch_first=True)
 
     labels = pad_sequence(labels, batch_first=True)
@@ -100,8 +100,8 @@ def collate_fn_cnn(chars, sentences, labels, max_sent, max_chars):
     for i in range(length):
         if chars[i].size(0) < max_sent:
             size = chars[i].size(0)
-            chars[i] = torch.cat((chars[i], torch.ones((max_sent - size, max_chars))), dim=0)
-            sentences[i] = torch.cat((sentences[i], torch.ones((max_sent - size))), dim=0)
+            chars[i] = torch.cat((chars[i], torch.zeros((max_sent - size, max_chars))), dim=0)
+            sentences[i] = torch.cat((sentences[i], torch.zeros((max_sent - size))), dim=0)
             labels[i] = torch.cat((labels[i], torch.zeros(max_sent - size)), dim=0)
 
     chars = [c.tolist() for c in chars]

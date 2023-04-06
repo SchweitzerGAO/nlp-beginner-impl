@@ -71,14 +71,13 @@ class Encoder(nn.Module):
         self.embed.pretrained_embed.weight.data.copy_(weight_embed)
         self.embed.pretrained_embed.weight.requires_grad = False
         self.bi_lstm_enc = nn.LSTM(self.embed.embed_size, hidden_size // 2, batch_first=True, bidirectional=True)
-        self.fc1 = nn.Linear(hidden_size, 256)
-        self.fc2 = nn.Linear(256, len(vocabs[2]))
-        # self.dropout = nn.Dropout(0.5)
+        self.fc = nn.Linear(hidden_size, len(vocabs[2]))
+        self.dropout = nn.Dropout(0.5)
 
     def forward(self, C, S):
         embed = self.embed(C, S)
         out, _ = self.bi_lstm_enc(embed)
-        out = self.fc2(self.fc1(out))
+        out = self.fc(self.dropout(out))
         return out
 
 

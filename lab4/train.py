@@ -13,8 +13,8 @@ configs
 hidden_size = 100
 char_embed = 'lstm'
 lr = 0.01
-batch_size = 128
-ep = 10
+batch_size = 256
+ep = 100
 '''
 plot
 '''
@@ -26,10 +26,10 @@ F1 = []
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
 # preparation
-train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed=char_embed)
+train_loader, vocabs, max_sent, max_chars = load_train_data(char_embed=char_embed, batch_size=batch_size)
 net = SeqTagger(vocabs, max_chars, max_sent, hidden_size, char_embed)
 net = net.to(device)
-optimizer = optim.SGD(net.parameters(), lr=lr)
+optimizer = optim.Adam(net.parameters(), lr=lr)
 
 
 # plot the P-R-F1 curve
@@ -68,7 +68,9 @@ def macro_ave_P_R_F1(y, y_hat):
                            if TP_TN_FN[k][0] + TP_TN_FN[k][2] != 0 else 0)
         P_sum += (temp_P_sum / len(TP_TN_FN))
         R_sum += (temp_R_sum / len(TP_TN_FN))
-        F1_sum += ((2. * P_sum * R_sum) / (P_sum + R_sum) if P_sum + R_sum != 0 else 0)
+        if temp_P_sum + temp_R_sum != 0:
+            F1_sum = F1_sum + (2 * temp_P_sum / len(TP_TN_FN) * temp_R_sum / len(TP_TN_FN)) \
+                     / (temp_P_sum / len(TP_TN_FN) + temp_R_sum / len(TP_TN_FN))
 
     return P_sum / batch_size, R_sum / batch_size, F1_sum / batch_size
 
